@@ -4,7 +4,8 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
+from torch import optim
+# import torch.optim as optim
 from torchvision import models
 from preprocessing import Preprocess
 from training_functions import train
@@ -29,6 +30,7 @@ class FeatureExtractor():
             if name in self.target_layers:
                 x.register_hook(self.save_gradient)
                 outputs += [x]
+
         return outputs, x
 
 
@@ -41,7 +43,7 @@ class ModelOutputs():
     def __init__(self, model, target_layers):
         self.model = model
         self.feature_extractor = FeatureExtractor(nn.Sequential(*list(model.children())[:-1]), target_layers)
-
+        print(nn.Sequential(*list(model.children())[:-1]))
     def get_gradients(self):
         return self.feature_extractor.gradients
 
@@ -139,8 +141,7 @@ def deprocess_image(img):
 # vgg_model.eval()
 
 gnet = models.googlenet(pretrained=True)
-
-grad_cam = GradCam(model=gnet,target_layer_names=["19"], device=config.device)
+# grad_cam = GradCam(model=gnet,target_layer_names=["19"], device=config.device)
 
 pre = Preprocess(img_size=224, batch_size=16, split=0.2, colour=True)
 
@@ -151,17 +152,20 @@ model.fc = nn.Linear(1024, 2)
 
 loss_fun = nn.CrossEntropyLoss()
 opt = optim.Adam(model.fc.parameters())
-result = train(pre,model,loss_fun,opt,config.device,epochs=10)
+result = train(pre,model,loss_fun,opt,config.device,epochs=1)
+gnet = nn.Sequential(*list(gnet.children()))
 
 
-grad_cam = GradCam(model=model, target_layer_names=["173"], device=config.device)
 
-paths = [config.
 
+model.eval()
+grad_cam = GradCam(model=model, target_layer_names=["15"], device=config.device)
+
+paths = [
     os.path.join(r"C:\Users\peter\OneDrive\Documents\MyProjPub\Shapes\Shapes_Preprocessed\Validation",
-                      "Impossible"),
-         os.path.join(r"C:\Users\peter\OneDrive\Documents\MyProjPub\Shapes\Shapes_Preprocessed\Validation",
-                      "Possible")
+                 "Impossible"),
+    os.path.join(r"C:\Users\peter\OneDrive\Documents\MyProjPub\Shapes\Shapes_Preprocessed\Validation",
+                 "Possible")
 ]
 
 save_loc = os.path.join(config.cam_dir,"MkII")

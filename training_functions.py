@@ -76,9 +76,9 @@ def train(p, net, loss_func, opt, device,epochs,view=False):
 
     if view:
         for idx, (img, lbl) in enumerate(train_data):
-            save_batch(zip(img, lbl), "batch_" + str(idx) + "_",train=True)
+            save_batch(zip(img, lbl), "batch_" + str(idx) + "_", train=True)
         for idx, (img, lbl) in enumerate(valid_data):
-            save_batch(zip(img, lbl), "batch_" + str(idx) + "_",train=False)
+            save_batch(zip(img, lbl), "batch_" + str(idx) + "_", train=False)
 
     for epoch in range(epochs):
         acc_total = 0

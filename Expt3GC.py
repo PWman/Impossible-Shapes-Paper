@@ -24,15 +24,17 @@ def get_cams(net,datadir,config):
     net = net.to(config.device)
     net.eval()
 
-    cam = GradCAM.from_config(model_type="resnet", arch=net, layer_name="layer4")
-    cam_pp = GradCAMpp.from_config(model_type="resnet", arch=net, layer_name="layer4")
+    cam = GradCAM.from_config(model_type="vgg", arch=net, layer_name="features_29")
+    cam_pp = GradCAMpp.from_config(model_type="vgg", arch=net, layer_name="features_29")
 
     all_names = []
     all_preds = []
     all_masks = []
     all_masks_pp = []
     for class_idx, class_name in enumerate(datadir):
+        print(datadir)
         subdir = os.path.join(datadir,class_name)
+        print(subdir)
         for img_name in os.listdir(subdir):
 
             img, normed_img = get_imgs(os.path.join(subdir, img_name))
@@ -57,35 +59,44 @@ transformations = transforms.Compose([
                          std=[0.229, 0.224, 0.225])
 ])
 
-results = pd.read_csv(os.path.join(config.results_dir_3,"Raw Scores.csv"))
+# results = pd.read_csv(os.path.join(config.results_dir_3,"Raw Scores.csv"))
+#
+# score_dict = {}
+# for seed in results["seed"]:
+#     x = results[results["seed"] == seed]
+#     correct = x.iloc[0][2] + x.iloc[1][3]
+#     score_dict[seed] = correct
+#
+# best_seed = max(score_dict, key=score_dict.get)
+#
+# best_params_path = os.path.join(
+#     config.param_dir,
+#     config.best_params["name"]
+#     + "_s" + str(best_seed)
+#     + ".pt"
+# )
+#
+# net = models.resnet18(pretrained=True)
+# for param in net.parameters():
+#     param.requires_grad = False
+# net.fc = nn.Linear(512, 2)
+# net.load_state_dict(torch.load(best_params_path))
+# opt = optim.SGD(net. lzxx.parameters(), lr=config.best_params["bs"], momentum=0.9, weight_decay=0.0001)
+p = Preprocess(img_size=224, batch_size=16, split=0.2, colour=True)
 
-score_dict = {}
-for seed in results["seed"]:
-    x = results[results["seed"] == seed]
-    correct = x.iloc[0][2] + x.iloc[1][3]
-    score_dict[seed] = correct
-
-best_seed = max(score_dict, key=score_dict.get)
-
-best_params_path = os.path.join(
-    config.param_dir,
-    config.best_params["name"]
-    + "_s" + str(best_seed)
-    + ".pt"
-)
-
-net = models.resnet18(pretrained=True)
-for param in net.parameters():
-    param.requires_grad = False
-net.fc = nn.Linear(512, 2)
-net.load_state_dict(torch.load(best_params_path))
-
-
+net = models.vgg16(pretrained=True)
+net.classifier[-1] = nn.Linear(4096,2)
 loss_func = nn.CrossEntropyLoss()
-p = Preprocess(img_size=224, batch_size=config.best_params["bs"], split=0.2, colour=True)
-opt = optim.SGD(net.fc.parameters(), lr=config.best_params["bs"], momentum=0.9, weight_decay=0.0001)
+net = models.vgg16(pretrained=True)
+for param in net.features.parameters():
+    param.requires_grad = False
+for param in net.classifier.parameters():
+    param.requires_grad = True
+opt = optim.Adam(net.classifier.parameters())
 
-best_cams = os.path.join(config.cam_dir,"Best")
+result = train(p,net,loss_func,opt,config.device,50)
+
+best_cams = os.path.join(config.cam_dir,"MkIII")
 best_gc_dir = os.path.join(best_cams,"GradCAM")
 best_gcpp_dir = os.path.join(best_cams,"GradCAM++")
 if not os.path.isdir(best_cams):
