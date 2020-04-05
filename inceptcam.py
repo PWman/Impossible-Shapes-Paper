@@ -10,7 +10,7 @@ from torchvision import models
 from preprocessing import Preprocess
 from training_functions import train
 
-class FeatureExtractor():
+class FeatureExtractor:
     """ Class for extracting activations and
     registering gradients from targetted intermediate layers """
 
@@ -34,7 +34,7 @@ class FeatureExtractor():
         return outputs, x
 
 
-class ModelOutputs():
+class ModelOutputs:
     """ Class for making a forward pass, and getting:
     1. The network output.
     2. Activations from intermeddiate targetted layers.
@@ -43,7 +43,9 @@ class ModelOutputs():
     def __init__(self, model, target_layers):
         self.model = model
         self.feature_extractor = FeatureExtractor(nn.Sequential(*list(model.children())[:-1]), target_layers)
-        print(nn.Sequential(*list(model.children())[:-1]))
+        print(nn.Sequential(*list(model.children())[int(target_layers[0]):]))
+        # print(self.feature_extractor.gradients.shape)
+
     def get_gradients(self):
         return self.feature_extractor.gradients
 
@@ -52,6 +54,7 @@ class ModelOutputs():
         output = output.view(output.size(0), -1)
         #####################################################
         output = self.model.fc(output).cuda()
+        # [print(ta.cpu().shape) for ta in target_activations]
         return target_activations, output
 
 
@@ -152,14 +155,14 @@ model.fc = nn.Linear(1024, 2)
 
 loss_fun = nn.CrossEntropyLoss()
 opt = optim.Adam(model.fc.parameters())
-result = train(pre,model,loss_fun,opt,config.device,epochs=1)
+result = train(pre,model,loss_fun,opt,config.device,epochs=10)
 gnet = nn.Sequential(*list(gnet.children()))
 
 
 
 
 model.eval()
-grad_cam = GradCam(model=model, target_layer_names=["15"], device=config.device)
+grad_cam = GradCam(model=model, target_layer_names=["17"], device=config.device)
 
 paths = [
     os.path.join(r"C:\Users\peter\OneDrive\Documents\MyProjPub\Shapes\Shapes_Preprocessed\Validation",
@@ -168,13 +171,13 @@ paths = [
                  "Possible")
 ]
 
-save_loc = os.path.join(config.cam_dir,"MkII")
+save_loc = os.path.join(config.cam_dir,"III")
 if not os.path.isdir(save_loc):
     os.mkdir(save_loc)
 
 for class_idx, path in enumerate(paths):
     for file in os.listdir(path):
-        img = cv2.imread(os.path.join(path,file),1)
+        img = cv2.imread(os.path.join(path, file), 1)
         img = np.float32(cv2.resize(img, (224, 224))) / 255
         input = preprocess_image(img)
 

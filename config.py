@@ -15,8 +15,10 @@ if torch.cuda.is_available():
 else:
     torch.device("cpu")
 
-net_names = ["AlexNet", "VGG16", "ResNet50", "GoogLeNet", "AlexNet Pretrained",
-             "VGG16 Pretrained", "ResNet50 Pretrained", "GoogLeNet Pretrained"]
+net_names = ["AlexNet","VGG11", "VGG16", "ResNet18", "ResNet50",
+             "GoogLeNet", "AlexNet Pretrained","VGG11 Pretrained",
+             "VGG16 Pretrained", "ResNet18 Pretrained",
+             "ResNet50 Pretrained", "GoogLeNet Pretrained"]
 # net_names = ["AlexNet", "VGG11", "ResNet18", "AlexNet_pt", "VGG11_pt", "ResNet18_pt"]
 
 param_dict = {
@@ -32,12 +34,12 @@ best_params = {
 
 
 shapes_dir = os.path.join(os.getcwd(), "Shapes")
-preprodir = os.path.join(os.getcwd(), "")
+preprodir = os.path.join(os.path.join(shapes_dir, ""))
 
 
-results_dir_1 = os.path.join(os.getcwd(),"Expt1 results")
-results_dir_2 = os.path.join(os.getcwd(),"Expt2 results")
-results_dir_3 = os.path.join(os.getcwd(),"Expt3 results")
+results_dir_1 = os.path.join(os.getcwd(), "Expt1 results")
+results_dir_2 = os.path.join(os.getcwd(), "Expt2 results")
+results_dir_3 = os.path.join(os.getcwd(), "Expt3 results")
 check_make_dir(results_dir_1)
 check_make_dir(results_dir_2)
 check_make_dir(results_dir_3)
