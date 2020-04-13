@@ -225,79 +225,68 @@ def train_epoch(p, net, opt):
     return av_acc,av_loss,av_vacc,av_vloss
 
 
-# def train_net(net_name, seed_num, num_epochs=None, batch_size=16, EStop=None):
-#     if num_epochs == None:
-#         num_epochs = config.num_epochs
-#
-#     set_seed(seed_num)
-#     net, opt = make_models(net_name)
-#     net.to(config.device)
-#     p = Preprocess(batch_size=batch_size)
-#     train_results = pd.DataFrame(columns=["epoch", "acc", "loss",
-#                                           "val_acc", "val_loss"])
-#     if EStop:
-#         for epoch in num_epochs:
-#             acc, loss, v_acc, v_loss = train_epoch(p, net, opt)
-#             r = pd.DataFrame([{
-#                 "epoch": epoch,
-#                 "acc": acc,
-#                 "val_acc": v_acc,
-#                 "loss": loss,
-#                 "val_loss": v_loss,
-#             }])
-#             train_results = train_results.append(r, sort=True)
-#
-#     else:
-#         for epoch in num_epochs:
-#             acc, loss, v_acc, v_loss = train_epoch(p, net, opt)
-#             r = pd.DataFrame([{
-#                 "epoch": epoch,
-#                 "acc": acc,
-#                 "val_acc": v_acc,
-#                 "loss": loss,
-#                 "val_loss": v_loss,
-#             }])
-#             train_results = train_results.append(r, sort=True)
-#
-#     return train_results
+def train_net(p, net, opt, num_epochs=None):
 
-
-
-def train_net(net_name, num_epochs=None, batch_size=16, EStop=None,view=False):
     if num_epochs == None:
         num_epochs = config.num_epochs
 
-    net, opt = make_models(net_name)
     net.to(config.device)
-    p = Preprocess(batch_size=batch_size)
-
-    net.to(config.device)
-    train_loader = p.train_loader
-    valid_loader = p.test_loader
-
     results = pd.DataFrame(columns=["epoch", "acc", "loss",
                                     "val_acc", "val_loss"])
-    if view:
-            for idx, (img, lbl) in enumerate(train_loader):
-                save_batch(zip(img, lbl), f"batch_{idx}_", train_data=True)
-            for idx, (img, lbl) in enumerate(valid_loader):
-                save_batch(zip(img, lbl), f"batch_{idx}_", train_data=False)
 
-    if EStop:
-        print("yes")
-    else:
-        for epoch in range(config.num_epochs):
-            t_acc, t_loss, v_acc, v_loss = train_epoch(net,train_loader,valid_loader,opt)
+    for epoch in range(num_epochs):
+        t_acc, t_loss, v_acc, v_loss = train_epoch(p,net,opt)
 
-            r = pd.DataFrame([{
-                "epoch": epoch,
-                "acc": t_acc,
-                "val_acc": v_acc,
-                "loss": t_loss,
-                "val_loss": v_loss,
-            }])
+        r = pd.DataFrame([{
+            "epoch": epoch,
+            "acc": t_acc,
+            "val_acc": v_acc,
+            "loss": t_loss,
+            "val_loss": v_loss,
+        }])
+        results = results.append(r, sort=True)
+        print(f"Epoch {epoch} Complete")
+        print(f"Acc = {round(t_acc,2)} Val Acc = {round(v_acc,2)}")
 
-            results = results.append(r, sort=True)
-            print(f"Epoch {epoch} Complete")
-            print(f"Acc = {round(t_acc,2)} Val Acc = {round(v_acc,2)}")
     return results
+
+
+
+# def train_net(net_name, num_epochs=None, batch_size=16, EStop=None,view=False):
+#     if num_epochs == None:
+#         num_epochs = config.num_epochs
+#
+#     net, opt = make_models(net_name)
+#     net.to(config.device)
+#     p = Preprocess(batch_size=batch_size)
+#
+#     net.to(config.device)
+#     train_loader = p.train_loader
+#     valid_loader = p.test_loader
+#
+#     results = pd.DataFrame(columns=["epoch", "acc", "loss",
+#                                     "val_acc", "val_loss"])
+#     if view:
+#             for idx, (img, lbl) in enumerate(train_loader):
+#                 save_batch(zip(img, lbl), f"batch_{idx}_", train_data=True)
+#             for idx, (img, lbl) in enumerate(valid_loader):
+#                 save_batch(zip(img, lbl), f"batch_{idx}_", train_data=False)
+#
+#     if EStop:
+#         print("yes")
+#     else:
+#         for epoch in range(config.num_epochs):
+#             t_acc, t_loss, v_acc, v_loss = train_epoch(net,train_loader,valid_loader,opt)
+#
+#             r = pd.DataFrame([{
+#                 "epoch": epoch,
+#                 "acc": t_acc,
+#                 "val_acc": v_acc,
+#                 "loss": t_loss,
+#                 "val_loss": v_loss,
+#             }])
+#
+#             results = results.append(r, sort=True)
+#             print(f"Epoch {epoch} Complete")
+#             print(f"Acc = {round(t_acc,2)} Val Acc = {round(v_acc,2)}")
+#     return results

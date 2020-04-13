@@ -19,6 +19,21 @@ num_seeds = 20
 num_epochs = 100
 loss_fun = torch.nn.CrossEntropyLoss()
 
+target_layers = {
+    "AlexNet": ["11"],
+    "VGG11": ["19"],
+    "VGG16": ["29"],
+    "ResNet18": ["7"],
+    "ResNet50": ["7"],
+    "GoogLeNet": ["15"],
+    "AlexNet (pretrained)": ["11"],
+    "VGG11 (pretrained)": ["19"],
+    "VGG16 (pretrained)": ["29"],
+    "ResNet18 (pretrained)": ["7"],
+    "ResNet50 (pretrained)": ["7"],
+    "GoogLeNet (pretrained)": ["15"],
+}
+
 shapes_basedir = os.path.join(os.getcwd(), "Shapes")
 results_basedir = os.path.join(os.getcwd(), "Results")
 check_make_dir(shapes_basedir)
@@ -52,7 +67,13 @@ gradcam_dir = os.path.join(results_basedir,"GradCAM")
 check_make_dir(cm_dir)
 check_make_dir(gradcam_dir)
 
+model_dir = os.path.join(os.getcwd(),"Models")
+check_make_dir(model_dir)
+
+[check_make_dir(os.path.join(model_dir, net)) for net in DNNs]
+[check_make_dir(os.path.join(model_dir, net + " (pretrained)")) for net in DNNs]
+
 #
-# [check_make_dir(os.path.join(raw_dir, net)) for net in DNNs]
-# [check_make_dir(os.path.join(raw_dir, net + " (pretrained)")) for net in DNNs]
-#
+[check_make_dir(os.path.join(raw_dir, net)) for net in DNNs]
+[check_make_dir(os.path.join(raw_dir, net + " (pretrained)")) for net in DNNs]
+
