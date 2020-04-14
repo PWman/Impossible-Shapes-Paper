@@ -96,8 +96,8 @@ class Preprocess():
             poss_loc = os.path.join(os.path.join(source_dir, "Possible", poss))
             imposs_loc = os.path.join(os.path.join(source_dir, "Impossible", imposs))
 
-            img_p = ImageOps.invert(Image.open(poss_loc)).convert("1").resize((224,224))
-            img_i = ImageOps.invert(Image.open(imposs_loc)).convert("1").resize((224,224))
+            img_p = ImageOps.invert(Image.open(poss_loc)).resize((224,224), Image.BICUBIC)
+            img_i = ImageOps.invert(Image.open(imposs_loc)).resize((224,224), Image.BICUBIC)
 
             img_p.save(os.path.join(train_path_p, poss))
             img_i.save(os.path.join(train_path_i, imposs))
@@ -113,9 +113,9 @@ class Preprocess():
             poss_loc = os.path.join(os.path.join(source_dir, "Possible", poss))
             imposs_loc = os.path.join(os.path.join(source_dir, "Impossible", imposs))
 ##########################################################################################
-            img_p = ImageOps.invert(Image.open(poss_loc)).convert("1").resize((224,224))
-            img_i = ImageOps.invert(Image.open(imposs_loc)).convert("1").resize((224,224))
 
+            img_p = ImageOps.invert(Image.open(poss_loc)).resize((224,224),Image.BICUBIC)
+            img_i = ImageOps.invert(Image.open(imposs_loc)).resize((224,224),Image.BICUBIC)
 
             img_p.save(os.path.join(val_path_p, poss))
             img_i.save(os.path.join(val_path_i, imposs))
