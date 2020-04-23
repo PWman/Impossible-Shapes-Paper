@@ -1,4 +1,6 @@
+import os
 import config
+import torch
 import numpy as np
 import pandas as pd
 from torch import nn
@@ -10,7 +12,7 @@ from sklearn.metrics import confusion_matrix
 from more_utils import set_seed, save_batch
 
 
-def init_net(model,pretrain=True):
+def init_net(model, pretrain=True):
     try:
         model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,2)
         if pretrain:
@@ -193,6 +195,27 @@ def get_cm_result(p, model):
         # print(cm_tot_t,cm_tot_v)
     return cm_tot_t, cm_tot_v
 
+def get_cms_all(p, net_name):
+    cm_tot_t = np.zeros((2,2))
+    cm_tot_v = np.zeros((2,2))
+    model_path = os.path.join(config.model_dir,net_name)
+    # print(net_name)
+    # if "pretrain" in net_name:
+    #     # print(net_name[:net_name.index(" ")])
+    #     net,opt = make_models(net_name[:net_name.index(" ")])
+    # else:
+    net,opt = make_models(net_name)
+    net.to(config.device)
+
+    for file in os.listdir(model_path):
+        net.load_state_dict(torch.load(os.path.join(model_path, file)))
+        cm_t, cm_v = get_cm_result(p,net)
+        cm_tot_t = cm_tot_t + cm_t
+        cm_tot_v = cm_tot_v + cm_v
+
+    return cm_tot_t, cm_tot_v
+
+
 def train_epoch(p, net, opt):
 
     accs_tot = 0
@@ -223,6 +246,7 @@ def train_epoch(p, net, opt):
     av_vloss = vloss_tot/count_v
 
     return av_acc,av_loss,av_vacc,av_vloss
+
 
 
 def train_net(p, net, opt, num_epochs=None):

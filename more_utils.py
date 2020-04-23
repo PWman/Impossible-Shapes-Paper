@@ -10,30 +10,37 @@ plt.style.use("seaborn-bright")
 
 
 def set_seed(seednum):
-    torch.manual_seed(seednum)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
     torch.cuda.manual_seed_all(seednum)
+    torch.manual_seed(seednum)
     np.random.seed(seednum)
     random.seed(seednum)
     return
 
-def save_batch(X,bname,train_data):
-    save_path = config.check_train_dir
-
-    if train_data:
-        save_path = os.path.join(save_path,"Train")
-        if not os.path.isdir(save_path):
-            os.mkdir(save_path)
-    else:
-        save_path = os.path.join(save_path,"Test")
-        if not os.path.isdir(save_path):
-            os.mkdir(save_path)
-
-    for count, (img,lbl) in enumerate(X):
-        save_name = os.path.join(save_path, bname + "img_" +
-                                 str(count) + "_class_" +
-                                 str(lbl.tolist()) + ".bmp")
+def save_batch(imgs,lbls,bname):
+    # save_path = config.check_train_dir
+    #
+    # if train_data:
+    #     save_path = os.path.join(save_path,"Train")
+    #     if not os.path.isdir(save_path):
+    #         os.mkdir(save_path)
+    # else:
+    #     save_path = os.path.join(save_path,"Test")
+    #     if not os.path.isdir(save_path):
+    #         os.mkdir(save_path)
+    #
+    for count, (img,lbl) in enumerate(zip(imgs,lbls)):
+        img_name = f"{bname}_img_{count}_class_{lbl.tolist()}.bmp"
+        save_name = os.path.join(config.check_train_dir,img_name)
         transforms.ToPILImage()(img).save(save_name)
 
+
+def cm_arr_to_df(arr):
+    df = pd.DataFrame(arr)
+    df.columns = ["Pred Imposs", "Pred Poss"]
+    df.index = ["Actual Imposs", "Actual Poss"]
+    return df
 
 def average_results(net_arch):
     avg_results = []

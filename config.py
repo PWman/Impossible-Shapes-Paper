@@ -6,8 +6,7 @@ def check_make_dir(data_dir):
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
 
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+
 if torch.cuda.is_available():
     device = torch.device("cuda:0")
 else:

@@ -7,24 +7,24 @@ from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 
 
-class Preprocess():
+class Preprocess:
     # img_size = 224
     # batch_size = 16
     # split = 0.2
     # colour = False
 
-    def __init__(self, img_size=224, batch_size=16, split=0.2,
-                 augment=True,shuffle=True):
+    def __init__(self, img_size=224, batch_size=16,
+                 augment=True, shuffle=True):
         # INITIALISE PARAMETERS
         self.img_size = img_size
         self.batch_size = batch_size
-        self.split = split
         self.new_dir = config.prepro_dir
 
         # CREATE DATA AUGMENTER
         if augment:
             data_transforms = transforms.Compose([
-                transforms.RandomRotation(360),
+                # transforms.RandomRotation(360),
+                transforms.RandomAffine(degrees=360, scale=(0.5, 1)),
                 transforms.RandomHorizontalFlip(),
                 ################################
                 transforms.Resize((img_size, img_size)),
