@@ -11,54 +11,52 @@ from more_utils import plot_and_save, average_results, plot_all_together, set_se
 
 
 if __name__ == "__main__":
-    ALL_NETS = config.DNNs + [dnn + " (pretrained)" for dnn in config.DNNs]
+    # ALL_NETS = config.DNNs + [dnn + " (pretrained)" for dnn in config.DNNs]
     # ALL_NETS = ["ResNet50 (pretrained)","GoogLeNet (pretrained)"]
-    p = Preprocess()
-    for net_name in ALL_NETS:
-        print(f"\nTesting {net_name}...\n")
-
-        for seed in range(config.num_seeds):
-            print(f"Testing seed {seed}...")
-            set_seed(seed)
-            net, opt = make_models(net_name)
-            result = train_net(p,net,opt)
-            result.to_csv(os.path.join(
-                config.raw_dir, net_name, f"{seed}.csv"
-            ))
-            torch.save(net.state_dict(), os.path.join(
-                config.model_dir, net_name, str(seed) + ".pt"
-            ))
-            save_all_CAMS(net_name,config.target_layers[net_name])
-
+    # p = Preprocess()
+    # for net_name in ALL_NETS:
+    #     print(f"\nTesting {net_name}...\n")
     #
-    p = Preprocess(augment=False)
-
-    train_dir = os.path.join(config.cm_dir, "Training")
-    val_dir = os.path.join(config.cm_dir, "Validation")
-    config.check_make_dir(train_dir)
-    config.check_make_dir(val_dir)
-
-    writer_t = pd.ExcelWriter(
-        os.path.join(config.cm_dir, "All_Train_Confusion_Matrices.xlsx"),
-        engine="xlsxwriter"
-    )
-    writer_v = pd.ExcelWriter(
-        os.path.join(config.cm_dir, "All_Validation_Confusion_Matrices.xlsx"),
-        engine="xlsxwriter"
-    )
-
-    for net_name in ALL_NETS:
-        print(f"Testing {net_name}...")
-        cm_t, cm_v = get_cms_all(p, net_name)
-        df_t = cm_arr_to_df(cm_t)
-        df_v = cm_arr_to_df(cm_v)
-        df_t.to_csv(os.path.join(train_dir, f"{net_name}.csv"))
-        df_v.to_csv(os.path.join(val_dir, f"{net_name}.csv"))
-        df_t.to_excel(writer_t, sheet_name=net_name)
-        df_v.to_excel(writer_v, sheet_name=net_name)
-
-    writer_t.save()
-    writer_v.save()
+    #     for seed in range(config.num_seeds):
+    #         print(f"Testing seed {seed}...")
+    #         set_seed(seed)
+    #         net, opt = make_models(net_name)
+    #         result = train_net(p,net,opt)
+    #         result.to_csv(os.path.join(
+    #             config.raw_dir, net_name, f"{seed}.csv"
+    #         ))
+    #         torch.save(net.state_dict(), os.path.join(
+    #             config.model_dir, net_name, str(seed) + ".pt"
+    #         ))
+    #         save_all_CAMS(net_name,config.target_layers[net_name])
+    #
+    # p = Preprocess(augment=False)
+    # train_dir = os.path.join(config.cm_dir, "Training")
+    # val_dir = os.path.join(config.cm_dir, "Validation")
+    # config.check_make_dir(train_dir)
+    # config.check_make_dir(val_dir)
+    #
+    # writer_t = pd.ExcelWriter(
+    #     os.path.join(config.cm_dir, "All_Train_Confusion_Matrices.xlsx"),
+    #     engine="xlsxwriter"
+    # )
+    # writer_v = pd.ExcelWriter(
+    #     os.path.join(config.cm_dir, "All_Validation_Confusion_Matrices.xlsx"),
+    #     engine="xlsxwriter"
+    # )
+    #
+    # for net_name in ALL_NETS:
+    #     print(f"Testing {net_name}...")
+    #     cm_t, cm_v = get_cms_all(p, net_name)
+    #     df_t = cm_arr_to_df(cm_t)
+    #     df_v = cm_arr_to_df(cm_v)
+    #     df_t.to_csv(os.path.join(train_dir, f"{net_name}.csv"))
+    #     df_v.to_csv(os.path.join(val_dir, f"{net_name}.csv"))
+    #     df_t.to_excel(writer_t, sheet_name=net_name)
+    #     df_v.to_excel(writer_v, sheet_name=net_name)
+    #
+    # writer_t.save()
+    # writer_v.save()
     # plt.style.use("seaborn")  # -bright")
     # ALL_SCORES = pd.DataFrame(columns=["name", "acc", "acc_std",
     #                                    "val_acc", "val_acc_std",
@@ -84,6 +82,8 @@ if __name__ == "__main__":
     # plt.close("all")
     # plot_all_together(RESULT_DICT)
     # ALL_NETS = config.DNNs
+    ALL_NETS = ["ResNet50"]
     # ALL_NETS = [dnn + " (pretrained)" for dnn in config.DNNs]
-    # for net_name in ALL_NETS:
-    #     save_all_CAMS(net_name,config.target_layers[net_name])
+    for net_name in ALL_NETS:
+        save_all_CAMS(net_name,config.target_layers[net_name])
+
