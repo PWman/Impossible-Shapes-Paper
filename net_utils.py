@@ -7,10 +7,9 @@ from torch import nn
 from torch import optim
 from torchvision import models
 from torchvision import transforms
-from preprocessing import Preprocess
+# from preprocessing import Preprocess
 from sklearn.metrics import confusion_matrix
-from more_utils import set_seed, save_batch
-
+# from more_utils import set_seed, save_batch
 
 def init_net(model, pretrain=True):
     try:
@@ -45,13 +44,13 @@ def init_opt(model,pretrain=True):
         opt = optim.Adam(model.parameters())
     return opt
 
-
 def get_model(model_name):
-    if "pretrained" in model_name:
+    if "pretrain" in model_name:
         pretrain = True
     else:
         pretrain = False
     model_name = model_name.split(" ")[0]
+    # print(model_name)
     if pretrain:
         if model_name == "AlexNet":
             out_model = init_net(models.alexnet(pretrained=True),
@@ -71,12 +70,12 @@ def get_model(model_name):
         elif model_name == "GoogLeNet":
             out_model = init_net(models.googlenet(pretrained=True),
                                  pretrain=True)
-        try:
-            opt = init_opt(out_model, pretrain=pretrain)
-            return out_model, opt
-        except NameError:
+            for child in out_model.modules():
+                child.track_running_stats = False
+        else:
             print("Net name not recognised/supported")
             return
+
     else:
         if model_name == "AlexNet":
             out_model = init_net(models.alexnet(pretrained=False),
@@ -96,184 +95,128 @@ def get_model(model_name):
         elif model_name == "GoogLeNet":
             out_model = init_net(models.googlenet(pretrained=False),
                                  pretrain=False)
-        try:
-            opt = init_opt(out_model, pretrain=pretrain)
-            return out_model, opt
-        except NameError:
+            for child in out_model.modules():
+                child.track_running_stats = False
+        else:
             print("Net name not recognised/supported")
             return
 
+    return out_model
 
-def make_models(model_names):
-
+def initialise_DNN(model_name):
     available_nets = config.DNNs
-    MODEL_DICTS = [
-        {"net_name": n, "net": None, "opt": None} for n in available_nets
-    ]
-    if type(model_names) == str:
-        try:
-            net, opt = get_model(model_names)
-            return net, opt
-        except TypeError:
-            print("Error: Model name not recognised")
-            return
-    elif type(model_names) == list:
-        # model_dicts = []
-        all_nets = []
-        all_opts = []
-        for net in model_names:
-            try:
-                net, opt = get_model(net)
-                all_nets.append(net)
-                all_opts.append(opt)
+    if type(model_name) == str:
+        if model_name in available_nets:
+            net = get_model(model_name)
+            if "pretrain" in model_name:
+                opt = init_opt(net, pretrain=True)
+            else:
+                opt = init_opt(net, pretrain=False)
 
-            except TypeError:
-                print(f"Warning: Model name f{net} not recognised."
-                      f" Skipping to next entry...")
-        return all_nets, all_opts
+            return net, opt
+        else:
+            print("Net name not recognised/supported")
     else:
+        print("Please input DNN name as a string")
         return
 
 
-def feed_net(net, opt, img_batch, lbl_batch,
-             train_net=False,
-             confusion_matrices=False):
-
-    img_batch = img_batch.to(config.device)
-    lbl_batch = lbl_batch.to(config.device)
-    if train_net:
-        net.train()
-    else:
-        net.eval()
-    net_out = net(img_batch)
-    # print(len(net_out))
-
-    if len(net_out[0]) == 2:
-        loss = config.loss_fun(net_out, lbl_batch)
-    else:
-        losses = []
-        for i in net_out:
-            losses.append(config.loss_fun(i, lbl_batch))
-        loss = losses[0] + 0.3*(sum(losses[1:]))
-        net_out = net_out[0]
-
-    if train_net:
-        loss.backward()
-        opt.step()
-        opt.zero_grad()
-
-    lbl_batch = lbl_batch.tolist()
-    net_out = net_out.tolist()
-    # print(net_out,lbl_batch)
-    predicts = [i.index(max(i)) for i in net_out]
-    matches = [i == j for i, j in zip(predicts, lbl_batch)]
-
-    acc = sum(matches) / len(matches)
-
-    if confusion_matrices:
-
-        cm = confusion_matrix(lbl_batch, predicts, labels=[0,1])
-
-        return cm
-    else:
-        return acc, float(loss)
-
-def get_cm_result(p, model):
-
-    cm_tot_t = np.zeros((2,2))
-    for img,lbl in p.train_loader:
-        cm_t = feed_net(model,None,img,lbl,
-                      train_net=False,
-                      confusion_matrices=True)
-        cm_tot_t = cm_tot_t + cm_t
-    cm_tot_v = np.zeros((2,2))
-    for img,lbl in p.test_loader:
-        cm_v = feed_net(model,None,img,lbl,
-                      train_net=False,
-                      confusion_matrices=True)
-        cm_tot_v = cm_tot_v + cm_v
-        # print(cm_tot_t,cm_tot_v)
-    return cm_tot_t, cm_tot_v
-
-def get_cms_all(p, net_name):
-    cm_tot_t = np.zeros((2,2))
-    cm_tot_v = np.zeros((2,2))
-    model_path = os.path.join(config.model_dir,net_name)
-    # print(net_name)
-    # if "pretrain" in net_name:
-    #     # print(net_name[:net_name.index(" ")])
-    #     net,opt = make_models(net_name[:net_name.index(" ")])
-    # else:
-    net,opt = make_models(net_name)
-    net.to(config.device)
-
-    for file in os.listdir(model_path):
-        net.load_state_dict(torch.load(os.path.join(model_path, file)))
-        cm_t, cm_v = get_cm_result(p,net)
-        cm_tot_t = cm_tot_t + cm_t
-        cm_tot_v = cm_tot_v + cm_v
-
-    return cm_tot_t, cm_tot_v
+# def get_cm_result(p, model):
+#
+#     cm_tot_t = np.zeros((2,2))
+#     for img,lbl in p.train_loader:
+#         cm_t = feed_net(model,None,img,lbl,
+#                       train_net=False,
+#                       confusion_matrices=True)
+#         cm_tot_t = cm_tot_t + cm_t
+#     cm_tot_v = np.zeros((2,2))
+#     for img,lbl in p.test_loader:
+#         cm_v = feed_net(model,None,img,lbl,
+#                       train_net=False,
+#                       confusion_matrices=True)
+#         cm_tot_v = cm_tot_v + cm_v
+#         # print(cm_tot_t,cm_tot_v)
+#     return cm_tot_t, cm_tot_v
+#
+# def get_cms_all(p, net_name):
+#     cm_tot_t = np.zeros((2,2))
+#     cm_tot_v = np.zeros((2,2))
+#     model_path = os.path.join(config.model_dir,net_name)
+#     # print(net_name)
+#     # if "pretrain" in net_name:
+#     #     # print(net_name[:net_name.index(" ")])
+#     #     net,opt = make_models(net_name[:net_name.index(" ")])
+#     # else:
+#     net,opt = make_models(net_name)
+#     net.to(config.device)
+#
+#     for file in os.listdir(model_path):
+#         net.load_state_dict(torch.load(os.path.join(model_path, file)))
+#         cm_t, cm_v = get_cm_result(p,net)
+#         cm_tot_t = cm_tot_t + cm_t
+#         cm_tot_v = cm_tot_v + cm_v
+#
+#     return cm_tot_t, cm_tot_v
+#
+#
+# def train_epoch(p, net, opt):
+#
+#     accs_tot = 0
+#     loss_tot = 0
+#     count_t = 0
+#     for img_batch, lbl_batch in p.train_loader:
+#         accs, loss = feed_net(net, opt, img_batch, lbl_batch, train_net=True)
+#         accs_tot = accs_tot + accs
+#         loss_tot = loss_tot + loss
+#         count_t += 1
+#
+#     av_acc = accs_tot/count_t
+#     av_loss = loss_tot/count_t
+#
+#     vaccs_tot = 0
+#     vloss_tot = 0
+#     count_v = 0
+#     for x in range(2):
+#         for vimg_batch, vlbl_batch in p.test_loader:
+#             vaccs, vloss = feed_net(net, opt,
+#                                     vimg_batch, vlbl_batch,
+#                                     train_net=False)
+#             vaccs_tot = vaccs_tot + vaccs
+#             vloss_tot = vloss_tot + vloss
+#             count_v += 1
+#
+#     av_vacc = vaccs_tot/count_v
+#     av_vloss = vloss_tot/count_v
+#
+#     return av_acc,av_loss,av_vacc,av_vloss
 
 
-def train_epoch(p, net, opt):
-
-    accs_tot = 0
-    loss_tot = 0
-    count_t = 0
-    for img_batch, lbl_batch in p.train_loader:
-        accs, loss = feed_net(net, opt, img_batch, lbl_batch, train_net=True)
-        accs_tot = accs_tot + accs
-        loss_tot = loss_tot + loss
-        count_t += 1
-
-    av_acc = accs_tot/count_t
-    av_loss = loss_tot/count_t
-
-    vaccs_tot = 0
-    vloss_tot = 0
-    count_v = 0
-    for x in range(2):
-        for vimg_batch, vlbl_batch in p.test_loader:
-            vaccs, vloss = feed_net(net, opt,
-                                    vimg_batch, vlbl_batch,
-                                    train_net=False)
-            vaccs_tot = vaccs_tot + vaccs
-            vloss_tot = vloss_tot + vloss
-            count_v += 1
-
-    av_vacc = vaccs_tot/count_v
-    av_vloss = vloss_tot/count_v
-
-    return av_acc,av_loss,av_vacc,av_vloss
-
-
-
-def train_net(p, net, opt, num_epochs=None):
-
-    if num_epochs == None:
-        num_epochs = config.num_epochs
-
-    net.to(config.device)
-    results = pd.DataFrame(columns=["epoch", "acc", "loss",
-                                    "val_acc", "val_loss"])
-
-    for epoch in range(num_epochs):
-        t_acc, t_loss, v_acc, v_loss = train_epoch(p,net,opt)
-
-        r = pd.DataFrame([{
-            "epoch": epoch,
-            "acc": t_acc,
-            "val_acc": v_acc,
-            "loss": t_loss,
-            "val_loss": v_loss,
-        }])
-        results = results.append(r, sort=True)
-        print(f"Epoch {epoch} Complete")
-        print(f"Acc = {round(t_acc,2)} Val Acc = {round(v_acc,2)}")
-
-    return results
-
+#
+# def train_net(p, net, opt, num_epochs=None):
+#
+#     if num_epochs == None:
+#         num_epochs = config.num_epochs
+#
+#     net.to(config.device)
+#     results = pd.DataFrame(columns=["epoch", "acc", "loss",
+#                                     "val_acc", "val_loss"])
+#
+#     for epoch in range(num_epochs):
+#         t_acc, t_loss, v_acc, v_loss = train_epoch(p,net,opt)
+#
+#         r = pd.DataFrame([{
+#             "epoch": epoch,
+#             "acc": t_acc,
+#             "val_acc": v_acc,
+#             "loss": t_loss,
+#             "val_loss": v_loss,
+#         }])
+#         results = results.append(r, sort=True)
+#         print(f"Epoch {epoch} Complete")
+#         print(f"Acc = {round(t_acc,2)} Val Acc = {round(v_acc,2)}")
+#
+#     return results
+#
 
 
 # def train_net(net_name, num_epochs=None, batch_size=16, EStop=None,view=False):

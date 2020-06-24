@@ -12,7 +12,7 @@ from preprocessing import Preprocess
 from torch import nn
 from PIL import Image
 import matplotlib.pyplot as plt
-from net_utils import make_models
+from net_utils import initialise_DNN
 
 class FeatureExtractor:
     """ Class for extracting activations and
@@ -160,7 +160,7 @@ def get_cam_all_seed(net_name,target_layer):
     p = Preprocess(batch_size=1,augment=False,shuffle=False)
     ALL_CAMDICTS = []
     model_dir = os.path.join(config.model_dir,net_name)
-    net, _ = make_models(net_name)
+    net, _ = ini(net_name)
     # for sdict in tqdm(os.listdir(os.path.join(config.model_dir, pt_netname))):
     for sdict in os.listdir(model_dir):
 
@@ -215,12 +215,16 @@ def save_all_CAMS(net_name,target_layer):
 
 def plot_cam_on_img(img_path,mask):
     # if np.amax(mask) == 1:
-    shape_img = Image.open(img_path).resize((224, 224)).convert("RGBA")
-    cmap = plt.get_cmap("jet")
+    # print(mask.shape)
     if np.amax(mask) != 1:
-        mask = cmap(mask / np.amax(mask))
-    else:
-        mask = cmap(mask)
+        mask = mask / np.amax(mask)
+    if np.amin(mask) != 0:
+        mask = mask - np.amin(mask)
+    cmap = plt.get_cmap("jet")
+    # print(mask.shape)
+    mask = cmap(mask)
     mask = Image.fromarray(np.uint8(mask * 225))
+    # print(mask.shape)
+    shape_img = Image.open(img_path).resize((224, 224)).convert("RGBA")
     mask_img = Image.blend(shape_img, mask, 0.5)
     return mask_img
