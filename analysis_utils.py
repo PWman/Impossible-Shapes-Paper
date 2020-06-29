@@ -1,14 +1,10 @@
 import os
 import config
-import torch
-import random
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from gcam_utils import plot_cam_on_img
-from train_test_utils import gcam_all_imgs
 from more_utils import plot_and_save, cm_arr_to_df
-from torchvision import transforms
 
 plt.style.use("seaborn-bright")
 
@@ -18,8 +14,6 @@ def avg_train_results(net_name):
     scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
     results_path = os.path.join(config.raw_dir, net_name, "train_results")
     for file in os.listdir(results_path):
-        # print(file)
-        # print(os.path.join(results_path, file))
         result = pd.read_csv(os.path.join(results_path, file), index_col=0)
         end_result = result[result["epoch"] == max(result["epoch"])]  # .drop(columns=["epoch"])
         scores = scores.append(end_result.drop(columns=["epoch"]))
@@ -74,26 +68,6 @@ def avg_gradcam(net_name):
     avg_gstats.columns = ["n_usable_cams", "n_correct", "n_nans", "n_poss_preds"]
     avg_gstats = pd.DataFrame(avg_gstats.to_records())
 
-    # for idx, img in enumerate(GSTATS["img_name"].unique()):
-    #     df = GSTATS[GSTATS["img_name"] == img]
-    #     correct_inds = list(df["correct"] == True)
-    #     nan_inds = list(df["correct"] == False)
-    #     for c,n in correct_inds, nan_inds:
-    #         if not (c==1 and n==1):
-    #             MASKS[0,0,:,:]
-
-
-    # avg_mask = np.mean(MASKS, axis=0)
-    #
-    # GSTATS = pd.DataFrame([])
-    # for idx,file in enumerate(os.listdir(gstat_path)):
-    #     df = pd.read_csv(os.path.join(gstat_path, file), index_col=0)
-    #     df["seed"] = idx
-    #     GSTATS = GSTATS.append(df)
-    # avg_gstats = pd.pivot_table(GSTATS, values=["correct", "prediction"],
-    #                             index=["img_name", "img_path"], aggfunc=np.mean)
-    # avg_gstats.columns = ["accuracy", "pct_poss_preds"]
-    # avg_gstats = pd.DataFrame(avg_gstats.to_records())
     return avg_mask, avg_gstats
 
 
@@ -135,5 +109,7 @@ def avg_save_net_results(net_name):
 
 if __name__ == "__main__":
     for net in config.DNNs:
-        if "pretrain" in net:
-            avg_save_net_results(f"{net} sf=0.5")
+        avg_save_net_results(f"{net} sf=0.5")
+
+        # if "pretrain" in net:
+        #     avg_save_net_results(f"{net}")

@@ -15,9 +15,6 @@ if torch.cuda.is_available():
 else:
     device = torch.device("cpu")
 
-
-# DNNs = ["AlexNet", "VGG11", "VGG16", "ResNet18", "ResNet50", "GoogLeNet"]
-
 batch_size = 16
 num_seeds = 20
 num_epochs = 100
@@ -46,9 +43,9 @@ check_make_dir(results_basedir)
 check_make_dir(shapes_basedir)
 
 raw_dir = os.path.join(results_basedir, "Raw")
-original_dir = os.path.join(shapes_basedir,"Original")
+original_dir = os.path.join(shapes_basedir, "Original")
 prepro_dir = os.path.join(shapes_basedir, "Preprocessed")
-check_train_dir = os.path.join(shapes_basedir,"Check_Training_Images")
+check_train_dir = os.path.join(shapes_basedir, "Check_Training_Images")
 check_make_dir(raw_dir)
 check_make_dir(original_dir)
 check_make_dir(prepro_dir)

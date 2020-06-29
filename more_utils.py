@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from torchvision import transforms
-plt.style.use("seaborn-bright")
+plt.style.use("seaborn")
 
 
 def set_seed(seednum):
@@ -85,27 +85,39 @@ def plot_and_save(results,fpath):
 def collate_all_results(expt_dir):
 
     # cm_write = pd.ExcelWriter()
+    leg1 = []
+    leg2 = []
     for net_name in os.listdir(expt_dir):
-        for file in os.listdir(os.path.join(expt_dir, net_name)):
-            if "Train Results.csv" in file:
-                result = pd.read_csv(os.path.join(expt_dir, net_name, file))
+        if ".png" not in net_name:
+            for file in os.listdir(os.path.join(expt_dir, net_name)):
+                if "Train Results.csv" in file:
+                    result = pd.read_csv(os.path.join(expt_dir, net_name, file))
+                    if "pretrained" not in net_name:
+                        plt.figure(1)
+                        plt.plot(result["epoch"], result["val_acc"])
 
-                if "pretrained" not in net_name:
-                    plt.figure(1)
-                    # t1 = "All Validation Accuracy without Pretraining"
-                    # plt.title(t1)
-                    # plt.ylabel("Validation Accuracy")
-                    # plt.xlabel("Epoch")
-                    # plt.legend(net_name)
-                    plt.figure(2)
-                    t2 = "All Validation Loss without Pretraining"
-                    # plt.title(t2)
-                    # plt.ylabel("Validation Loss")
-                    # plt.xlabel("Epoch")
-                    # plt.legend(config.DNNs)
-                    # plt.ylim(top=1.5)
-                else:
-                    plt.figure(3)
+                        # t1 = "All Validation Accuracy without Pretraining"
+                        # plt.title(t1)
+                        # plt.ylabel("Validation Accuracy")
+                        # plt.xlabel("Epoch")
+                        # plt.legend(net_name)
+                        plt.figure(2)
+                        plt.plot(result["epoch"], result["val_loss"])
+                        leg1.append(net_name)
+
+                        # plt.title(t2)
+                        # plt.ylabel("Validation Loss")
+                        # plt.xlabel("Epoch")
+                        # plt.legend(config.DNNs)
+                        # plt.ylim(top=1.5)
+                    else:
+                        plt.figure(3)
+                        plt.plot(result["epoch"], result["val_acc"])
+                        plt.figure(4)
+                        t2 = "All Validation Loss Pretraining"
+                        plt.plot(result["epoch"], result["val_loss"])
+                        leg2.append(net_name.split(" ")[0])
+
                     # t3 = "All Validation Accuracy with Pretraining"
                     # plt.title(t3)
                     # plt.ylabel("Validation Accuracy")
@@ -125,8 +137,23 @@ def collate_all_results(expt_dir):
     # plt.savefig(os.path.join(expt_dir, t1))
     # plt.savefig(os.path.join(config.graph_dir, t2))
     plt.figure(1)
-    plt.savefig(os.path.join(expt_dir,t1))
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.savefig(os.path.join(expt_dir, "Validation Accuracies (no pretraining).png"))
     plt.figure(2)
-    plt.savefig(os.path.join(expt_dir,t2))
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.savefig(os.path.join(expt_dir, "Validation Losses (no pretraining).png"))
+
+    plt.figure(3)
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.savefig(os.path.join(expt_dir, "Validation Accuracies (with pretraining).png"))
+    plt.figure(4)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.savefig(os.path.join(expt_dir, "Validation Losses (with pretraining)"))
     return
 
+if __name__ == "__main__":
+    collate_all_results(config.expt2_dir)

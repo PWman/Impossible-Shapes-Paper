@@ -102,9 +102,12 @@ def train_all_nets(net_name, scale_factor=None):  # save_models=True,
     # if save_models:
     if scale_factor is None:
         result_dir = os.path.join(config.raw_dir, f"{net_name}")
+        p = Preprocess()
         # model_dir = os.path.join(config.model_dir, f"{net_name}")
     else:
         result_dir = os.path.join(config.raw_dir, f"{net_name} sf={scale_factor}")
+        p = Preprocess(scale_factor=scale_factor)
+
         # model_dir = os.path.join(config.model_dir, f"{net_name} sf={scale_factor}")
 
     config.check_make_dir(result_dir)
@@ -113,7 +116,6 @@ def train_all_nets(net_name, scale_factor=None):  # save_models=True,
     result_dir = os.path.join(result_dir, "train_results")
     config.check_make_dir(result_dir)
 
-    p = Preprocess()
     for seed in range(config.num_seeds):
         print(f"Testing {net_name} seed {seed}...")
         set_seed(seed)
@@ -250,11 +252,15 @@ def train_test_network(net_name, scale_factor=None):
 
 
 if __name__ == "__main__":
-    # save_all_gcams("ResNet18 (pretrained)")
-    # train_test_network("AlexNet", scale_factor=0.5)
-    # train_test_network("VGG16", scale_factor=0.5)
-    # train_test_network("ResNet50", scale_factor=0.5)
-    # train_test_network("ResNet18", scale_factor=0.5)
+    # train_test_network("AlexNet (pretrained)", scale_factor=0.5)
+    # train_test_network("VGG11 (pretrained)", scale_factor=0.5)
+    # train_test_network("VGG16 (pretrained)", scale_factor=0.5)
+    # train_test_network("ResNet18 (pretrained)", scale_factor=0.5)
+    # train_test_network("ResNet50 (pretrained)", scale_factor=0.5)
+    # train_test_network("GoogLeNet (pretrained)", scale_factor=0.5)
+    # save_all_cmats("VGG11 sf=0.5")
+    # save_all_gcams("VGG11 sf=0.5")
+
     # train_test_network("GoogLeNet", scale_factor=0.5)
     # for net in config.DNNs:
     #     if "pretrain" in net:
@@ -262,7 +268,7 @@ if __name__ == "__main__":
     #         save_all_cmats(f"{net} sf=0.5")
     #         save_all_gcams(f"{net} sf=0.5")
     # save_all_cmats("VGG11 sf=0.5")
-    save_all_gcams("VGG11 sf=0.5")
+    # save_all_gcams("VGG11 sf=0.5")
 
             # train_test_network(net)
             # train_test_network(net, scale_factor=0.5)
