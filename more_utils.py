@@ -193,34 +193,9 @@ def collate_all_results(scale_factor=None):
         collated_table.to_csv(os.path.join(config.expt2_dir, "DNN perfomance summary.csv"))
 
     return collated_table
-            # df_row = pd.DataFrame([{
-            #     "acc": df["acc"].iloc[-1],
-            #     "acc_std": np.std(df["acc"]),
-            #     "val_acc": df["acc"].iloc[-1],
-            #     "acc_std": np.std(df["acc"])
-            # }])
-            # collated_table = collated_table.append()
-            # if expt_num = 1:
-            #
-            # elif expt_num = 2:
-            # else:
-            #     return
 
+def collate_cmats():
 
-
-# def collate_all_results(expt_dir):
-#     for net_name in os.listdir(expt_dir):
-#         # if ".png" not in net_name:
-#         if os.path.isdir(os.path.join(expt_dir, net_name)):
-#             for file in os.listdir(os.path.join(expt_dir, net_name)):
-#                 if "Train Results.csv" in file:
-#                     in_df = pd.read_csv(os.path.join(expt_dir, net_name, file))
-#                     out_df = pd.DataFrame([{
-#                         "Mean Accuracy"
-#                     }])
-#
-# def collate_train_results(expt_dir):
-#     for net_name in os.listdir(expt_dir):
 
 def get_dir_sizes(dir):
     for dirpath, dirnames, filenames in os.walk(dir):

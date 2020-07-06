@@ -13,7 +13,12 @@ from torch import nn
 from PIL import Image
 import matplotlib.pyplot as plt
 from net_utils import initialise_DNN
-
+"""
+Parts of the code here (i.e. GradCAM, FeatureExtractor and ModelOutputs objects) were modified from Jacob Gildenblat's (jacobgil) Pytorch implementation of GradCAM.
+The original code is under MIT license and is available at the link below:
+https://github.com/jacobgil/pytorch-grad-cam
+"""
+#
 class FeatureExtractor:
     """ Class for extracting activations and
     registering gradients from targetted intermediate layers """
@@ -160,7 +165,7 @@ def get_cam_all_seed(net_name,target_layer):
     p = Preprocess(batch_size=1,augment=False,shuffle=False)
     ALL_CAMDICTS = []
     model_dir = os.path.join(config.model_dir,net_name)
-    net, _ = ini(net_name)
+    net, _ = initialise_DNN(net_name)
     # for sdict in tqdm(os.listdir(os.path.join(config.model_dir, pt_netname))):
     for sdict in os.listdir(model_dir):
 
