@@ -252,6 +252,10 @@ def train_test_network(net_name, scale_factor=None):
 
 
 if __name__ == "__main__":
+    for net in config.DNNs:
+        train_test_network(net)
+        train_test_network(net, scale_factor=0.5)
+
     # train_test_network("AlexNet (pretrained)", scale_factor=0.5)
     # train_test_network("VGG11 (pretrained)", scale_factor=0.5)
     # train_test_network("VGG16 (pretrained)", scale_factor=0.5)

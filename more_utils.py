@@ -82,13 +82,15 @@ def plot_and_save(results,fpath):
 
     return
 
-def collate_all_results(expt_dir):
+def graph_all_results(expt_dir):
 
     # cm_write = pd.ExcelWriter()
     leg1 = []
     leg2 = []
     for net_name in os.listdir(expt_dir):
-        if ".png" not in net_name:
+        # if ".png" not in net_name:
+        if os.path.isdir(os.path.join(expt_dir, net_name)):
+
             for file in os.listdir(os.path.join(expt_dir, net_name)):
                 if "Train Results.csv" in file:
                     result = pd.read_csv(os.path.join(expt_dir, net_name, file))
@@ -155,5 +157,92 @@ def collate_all_results(expt_dir):
     plt.savefig(os.path.join(expt_dir, "Validation Losses (with pretraining)"))
     return
 
+
+def collate_all_results(scale_factor=None):
+    net_names = config.DNNs
+    if scale_factor is not None:
+        net_names = [f"{n} sf={scale_factor}" for n in net_names]
+
+    collated_table = pd.DataFrame([])
+    for net in net_names:
+        result_path = os.path.join(config.raw_dir, net, "train_results")
+        net_results = pd.DataFrame([])
+        for file in os.listdir(result_path):
+            df = pd.read_csv(os.path.join(result_path, file))
+            score = {
+                "acc": df[df["epoch"] == 99]["acc"].values[0], # select acc at final epoch
+                "acc_std": np.std(df["acc"]),
+                "val_acc": df[df["epoch"] == 99]["val_acc"].values[0],
+                "val_acc_std": np.std(df["val_acc"]),
+                "loss": df[df["epoch"] == 99]["loss"].values[0],
+                "loss_std": np.std(df["loss"]),
+                "val_loss": df[df["epoch"] == 99]["val_loss"].values[0],
+                "val_loss_std": np.std(df["val_acc"])
+            }
+            net_results = net_results.append(pd.DataFrame([score]))
+        result = pd.DataFrame(np.mean(net_results)).transpose()
+        if scale_factor is None:
+            result["net_name"] = net
+        else:
+            result["net_name"] = net[:net.find(f"sf={scale_factor}") - 1]
+        collated_table = collated_table.append(result)
+
+    if scale_factor is None:
+        collated_table.to_csv(os.path.join(config.expt1_dir, "DNN perfomance summary.csv"))
+    elif scale_factor == 0.5:
+        collated_table.to_csv(os.path.join(config.expt2_dir, "DNN perfomance summary.csv"))
+
+    return collated_table
+            # df_row = pd.DataFrame([{
+            #     "acc": df["acc"].iloc[-1],
+            #     "acc_std": np.std(df["acc"]),
+            #     "val_acc": df["acc"].iloc[-1],
+            #     "acc_std": np.std(df["acc"])
+            # }])
+            # collated_table = collated_table.append()
+            # if expt_num = 1:
+            #
+            # elif expt_num = 2:
+            # else:
+            #     return
+
+
+
+# def collate_all_results(expt_dir):
+#     for net_name in os.listdir(expt_dir):
+#         # if ".png" not in net_name:
+#         if os.path.isdir(os.path.join(expt_dir, net_name)):
+#             for file in os.listdir(os.path.join(expt_dir, net_name)):
+#                 if "Train Results.csv" in file:
+#                     in_df = pd.read_csv(os.path.join(expt_dir, net_name, file))
+#                     out_df = pd.DataFrame([{
+#                         "Mean Accuracy"
+#                     }])
+#
+# def collate_train_results(expt_dir):
+#     for net_name in os.listdir(expt_dir):
+
+def get_dir_sizes(dir):
+    for dirpath, dirnames, filenames in os.walk(dir):
+        models_size = 0
+        results_size = 0
+        total_size = 0
+        for f in filenames:
+            print(f)
+            fp = os.path.join(dirpath, f)
+            # skip if it is symbolic link
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+                if "models" in fp:
+                    # print(fp)
+
+                    models_size += os.path.getsize(fp)
+                else:
+                    results_size += os.path.getsize(fp)
+        # return results_size,
+
 if __name__ == "__main__":
-    collate_all_results(config.expt2_dir)
+    # graph_all_results(config.expt2_dir)
+    collate_all_results()
+
+    collate_all_results(scale_factor=0.5)
