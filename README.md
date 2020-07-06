@@ -1,13 +1,11 @@
 # Impossible-Shapes-Publication
 
-See the paper at LINK
+See the paper at LINK (WIP)
 
-Code for models for impossible shape classification as well as the analysis.
+The results for study 1 in the current repository correspond to study 2 in the main paper (i.e. DNNS trained without zoom augmentations), while study 2 in the current repository corresponds to study 3 in the main paper (DNNs trained with zoom augmentations).
 
-See Expt1/Results/Graphs and Expt2/Results/Graphs for the data visualisations.
+The summary statistics of the DNNs (tables 2 and 5 respectively in the main paper) can be found in the corresponding study directories labelled "DNN performance summary.csv". These directories also contain the spreadsheets logging the confusion matrix scores for each networks, as well as the training curve plots. GradCAM results can be found in the "gradCAM" directory for each network in their respective study directories. 
 
-Change config.py to change number of seeds tested (i.e. iterations for experiments 1 and 2) or result directories.
+While results on this repository may deviate slightly from the results in the main paper (due to technical problems with the original machine used to run the experiments and its setup), the averaging across seeds has ensured the results are largely similar and reliable.
 
-Run EXPERIMENT_1.py and EXPERIMENT_2.py for the experiments. Note we do not reccomend running these without a cuda-enabled GPU.
-
-Run expt1_analysis and expt2_analysis to average results and produce graphs for learning curves.
+Command line interface for running experiments locally coming soon.
