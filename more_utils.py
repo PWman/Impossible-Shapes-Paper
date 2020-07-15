@@ -194,30 +194,49 @@ def collate_all_results(scale_factor=None):
 
     return collated_table
 
-def collate_cmats():
+def collate_cmats(expt_dir):
 
+    train_writer = pd.ExcelWriter(os.path.join(expt_dir, "Confusion Matrices (train images).xlsx"),
+                                  engine="xlsxwriter")
+    val_writer = pd.ExcelWriter(os.path.join(expt_dir, "Confusion Matrices (validation images).xlsx"),
+                                engine="xlsxwriter")
+    for net in os.listdir(expt_dir):
+        if net in config.DNNs:
+            for file in os.listdir(os.path.join(expt_dir, net)):
+                if file == "Confusion Matrices.xlsx":
+                    rpath = os.path.join(expt_dir, net, file)
+                    train_result = pd.read_excel(rpath, "Training", index_col=0)
+                    val_result = pd.read_excel(rpath, "Validation", index_col=0)
 
-def get_dir_sizes(dir):
-    for dirpath, dirnames, filenames in os.walk(dir):
-        models_size = 0
-        results_size = 0
-        total_size = 0
-        for f in filenames:
-            print(f)
-            fp = os.path.join(dirpath, f)
-            # skip if it is symbolic link
-            if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
-                if "models" in fp:
-                    # print(fp)
+                    train_result.to_excel(train_writer, sheet_name=net)
+                    val_result.to_excel(val_writer, sheet_name=net)
 
-                    models_size += os.path.getsize(fp)
-                else:
-                    results_size += os.path.getsize(fp)
-        # return results_size,
+    train_writer.save()
+    val_writer.save()
+# def get_dir_sizes(dir):
+#     for dirpath, dirnames, filenames in os.walk(dir):
+#         models_size = 0
+#         results_size = 0
+#         total_size = 0
+#         for f in filenames:
+#             print(f)
+#             fp = os.path.join(dirpath, f)
+#             # skip if it is symbolic link
+#             if not os.path.islink(fp):
+#                 total_size += os.path.getsize(fp)
+#                 if "models" in fp:
+#                     # print(fp)
+#
+#                     models_size += os.path.getsize(fp)
+#                 else:
+#                     results_size += os.path.getsize(fp)
+#         # return results_size,
 
 if __name__ == "__main__":
-    # graph_all_results(config.expt2_dir)
-    collate_all_results()
+    collate_cmats(config.expt1_dir)
+    collate_cmats(config.expt2_dir)
 
-    collate_all_results(scale_factor=0.5)
+    # graph_all_results(config.expt2_dir)
+    # collate_all_results()
+    #
+    # collate_all_results(scale_factor=0.5)
