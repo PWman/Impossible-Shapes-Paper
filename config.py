@@ -35,6 +35,23 @@ target_layers = {
     "GoogLeNet (pretrained)": ["15"],
 }
 
+
+# #CORRECT TARGET LAYERS
+# target_layers = {
+#     "AlexNet": ["11"],
+#     "VGG11": ["19"],
+#     "VGG16": ["29"],
+#     "ResNet18": ["7"],
+#     "ResNet50": ["7"],
+#     "GoogLeNet": ["15"],
+#     "AlexNet (pretrained)": ["11"],
+#     "VGG11 (pretrained)": ["19"],
+#     "VGG16 (pretrained)": ["29"],
+#     "ResNet18 (pretrained)": ["7"],
+#     "ResNet50 (pretrained)": ["7"],
+#     "GoogLeNet (pretrained)": ["15"],
+# }
+
 DNNs = list(target_layers.keys())
 
 results_basedir = os.path.join(os.getcwd(), "Results")
