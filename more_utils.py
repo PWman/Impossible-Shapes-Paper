@@ -79,7 +79,7 @@ def plot_and_save(results,fpath):
     plt.legend(["Training", "Validation"])
     plt.xlim(0, config.num_epochs-1)
     plt.savefig(os.path.join(fpath, "Loss.png"))
-
+    plt.close()
     return
 
 def graph_all_results(expt_dir):

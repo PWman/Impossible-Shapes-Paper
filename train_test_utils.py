@@ -133,6 +133,7 @@ def train_all_nets(net_name, scale_factor=None):  # save_models=True,
 
 
 def get_cm_result(p, model):
+    model.eval()
     cm_tot_t = np.zeros((2, 2))
     for img, lbl in p.train_loader:
         cm_t = feed_net(model, None, img, lbl,
@@ -155,7 +156,8 @@ def save_all_cmats(net_name):
 
     save_dir = os.path.join(config.raw_dir, net_name, "confusion_matrices")
     train_dir = os.path.join(save_dir, "train_data")
-    val_dir = os.path.join(save_dir, "validation_data")
+    val_dir = os.path\
+        .join(save_dir, "validation_data")
     config.check_make_dir(save_dir)
     config.check_make_dir(train_dir)
     config.check_make_dir(val_dir)
@@ -177,6 +179,7 @@ def save_all_cmats(net_name):
 
 def gcam_all_imgs(p, net, target_layer):
     cam_array = []
+    net.eval()
     df_camstats = pd.DataFrame([])
     camnet = GradCAM(net, target_layer)
     for idx, (img, lbl) in enumerate(p.test_loader):
@@ -235,6 +238,10 @@ def save_all_gcams(net_name):
 
     for seed, file in enumerate(os.listdir(net_path)):
         net.load_state_dict(torch.load(os.path.join(net_path, file)))
+        if "GoogLeNet" in net_name and "pretrain" not in net_name:
+            net.aux_logits = False
+            net.aux1 = None
+            net.aux2 = None
         cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name])
         np.save(os.path.join(mask_dir, f"{seed}"), cam_array)
         cstats.to_csv(os.path.join(gstat_dir, f"{seed}.csv"))
