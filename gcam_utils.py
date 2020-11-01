@@ -8,12 +8,12 @@ import pandas as pd
 import torch
 from torch.autograd import Function
 from torchvision import models, transforms
+from more_utils import set_seed
 from preprocessing import Preprocess
 from torch import nn
 from PIL import Image
 import matplotlib.pyplot as plt
 from net_utils import initialise_DNN
-
 """
 Parts of the code here (i.e. GradCAM, FeatureExtractor and ModelOutputs objects) were modified from Jacob Gildenblat's (jacobgil) Pytorch implementation of GradCAM.
 The original code is under MIT license and is available at the link below:
@@ -132,7 +132,6 @@ class GradCAM(nn.Module):
 
         target = features[-1]
         target = target.cpu().data.numpy()[0, :]
-
         weights = np.mean(grads_val, axis=(2, 3))[0, :]
         cam = np.zeros(target.shape[1:], dtype=np.float32)
 
@@ -144,6 +143,78 @@ class GradCAM(nn.Module):
         cam = cam - np.min(cam)
         cam = cam / np.max(cam)
         return cam
+
+def plot_cam_on_img(img_path, mask):
+    # if np.amax(mask) == 1:
+    # print(mask.shape)
+    if np.amax(mask) != 1:
+        mask = mask / np.amax(mask)
+    if np.amin(mask) != 0:
+        mask = mask - np.amin(mask)
+    cmap = plt.get_cmap("jet")
+    # print(mask.shape)
+    mask = cmap(mask)
+    mask = Image.fromarray(np.uint8(mask * 225))
+    # print(mask.shape)
+    shape_img = Image.open(img_path).resize((224, 224)).convert("RGBA")
+    mask_img = Image.blend(shape_img, mask, 0.5)
+    return mask_img
+
+
+def gcam_all_imgs(p, net, target_layer):
+    cam_array = []
+    net.eval()
+    df_camstats = pd.DataFrame([])
+    camnet = GradCAM(net, target_layer)
+    for idx, (img, lbl) in enumerate(p.test_loader):
+        shape_lbls = p.test_loader.dataset.samples[idx]
+        # print(f"Testing GradCAM for {os.path.basename(shape_lbls[0])}")
+        mask = camnet(img)
+        cam_array.append(mask)
+        # print(camnet.output)
+
+        if np.isnan(np.sum(mask)):
+            nan_nums = True
+        else:
+            nan_nums = False
+        if int(lbl) == int(camnet.pred):
+            correct = True
+        else:
+            correct = False
+        if correct and not nan_nums:
+            avg_inc = True
+        else:
+            avg_inc = False
+
+        df = pd.DataFrame([{
+            "img_name": os.path.basename(shape_lbls[0]),
+            "img_path": shape_lbls[0],
+            "net_output": list(camnet.output.cpu().detach().numpy()[0]),
+            "label": bool(lbl),
+            "prediction": bool(camnet.pred),
+            "correct": correct,
+            "nan_array": nan_nums,
+            "avg_include": avg_inc
+
+        }])
+        # print(df[["avg_include", "nan_array", "correct"]])
+        df_camstats = df_camstats.append(df)
+        # print(f"lbl{int(lbl)},pred{int(camnet.pred)}")
+    return cam_array, df_camstats
+# def get_conv_layer(net):
+#     for i, c in enumerate(net.children()):
+#         if len(c._modules) > 0:
+#             print((c._modules))
+
+
+
+
+# def get_cam_all_layers(net_name):
+#     model_dir = os.path.join(config.raw_dir,net_name,"models")
+#     net,_ = initialise_DNN(net_name)
+#     p = Preprocess(batch_size=1,shuffle=False)
+#     for file in model_dir:
+#         net_name
 
 
 #
@@ -222,18 +293,4 @@ class GradCAM(nn.Module):
 #             mask_img.save(os.path.join(save_dir,f"{img_name}_correct{ncorrect}.png"))
 #     return
 #
-def plot_cam_on_img(img_path, mask):
-    # if np.amax(mask) == 1:
-    # print(mask.shape)
-    if np.amax(mask) != 1:
-        mask = mask / np.amax(mask)
-    if np.amin(mask) != 0:
-        mask = mask - np.amin(mask)
-    cmap = plt.get_cmap("jet")
-    # print(mask.shape)
-    mask = cmap(mask)
-    mask = Image.fromarray(np.uint8(mask * 225))
-    # print(mask.shape)
-    shape_img = Image.open(img_path).resize((224, 224)).convert("RGBA")
-    mask_img = Image.blend(shape_img, mask, 0.5)
-    return mask_img
+

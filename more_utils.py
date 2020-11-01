@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from torchvision import transforms
+from net_utils import initialise_DNN
 plt.style.use("seaborn")
 
 
@@ -42,19 +43,19 @@ def cm_arr_to_df(arr):
     df.index = ["Actual Imposs", "Actual Poss"]
     return df
 
-def average_results(net_arch):
-    avg_results = []
-    scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
-    results_path = os.path.join(config.raw_dir, net_arch)
-    for file in os.listdir(results_path):
-        # print(file)
-        # print(os.path.join(results_path, file))
-        result = pd.read_csv(os.path.join(results_path, file), index_col=0)
-        end_result = result[result["epoch"] == max(result["epoch"])]#.drop(columns=["epoch"])
-        scores = scores.append(end_result.drop(columns=["epoch"]))
-        avg_results.append(result)
-
-    return sum(avg_results)/len(avg_results), scores
+# def average_results(net_arch):
+#     avg_results = []
+#     scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
+#     results_path = os.path.join(config.raw_dir, net_arch)
+#     for file in os.listdir(results_path):
+#         # print(file)
+#         # print(os.path.join(results_path, file))
+#         result = pd.read_csv(os.path.join(results_path, file), index_col=0)
+#         end_result = result[result["epoch"] == max(result["epoch"])]#.drop(columns=["epoch"])
+#         scores = scores.append(end_result.drop(columns=["epoch"]))
+#         avg_results.append(result)
+#
+#     return sum(avg_results)/len(avg_results), scores
 
 def plot_and_save(results,fpath):
     # PLOT ACCURACY
@@ -231,6 +232,9 @@ def collate_cmats(expt_dir):
 #                 else:
 #                     results_size += os.path.getsize(fp)
 #         # return results_size,
+
+
+
 
 if __name__ == "__main__":
     collate_cmats(config.expt1_dir)

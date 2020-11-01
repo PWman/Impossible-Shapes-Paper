@@ -11,7 +11,7 @@ from preprocessing import Preprocess
 from sklearn.metrics import confusion_matrix
 from net_utils import initialise_DNN
 from more_utils import set_seed, save_batch
-from gcam_utils import GradCAM
+from gcam_utils import gcam_all_imgs
 
 
 def feed_net(net, opt, img_batch, lbl_batch,
@@ -91,7 +91,6 @@ def train_net(p, net, opt):
             "val_loss": v_loss,
         }])
         results = results.append(r, sort=True)
-
         print(f"Epoch {epoch} Complete")
         print(f"Acc = {round(t_acc, 2)} Val Acc = {round(v_acc, 2)}")
 
@@ -150,6 +149,7 @@ def get_cm_result(p, model):
     return cm_tot_t, cm_tot_v
 
 
+
 def save_all_cmats(net_name):
     print("Getting confusion matrices...")
     net_path = os.path.join(config.raw_dir, net_name, "models")
@@ -177,46 +177,6 @@ def save_all_cmats(net_name):
         np.save(os.path.join(val_dir, f"{seed}"), cm_v)
 
 
-def gcam_all_imgs(p, net, target_layer):
-    cam_array = []
-    net.eval()
-    df_camstats = pd.DataFrame([])
-    camnet = GradCAM(net, target_layer)
-    for idx, (img, lbl) in enumerate(p.test_loader):
-        shape_lbls = p.test_loader.dataset.samples[idx]
-        # print(f"Testing GradCAM for {os.path.basename(shape_lbls[0])}")
-        mask = camnet(img)
-        cam_array.append(mask)
-
-        if np.sum(mask) == np.nan:
-            nan_nums = True
-        else:
-            nan_nums = False
-        if int(lbl) == int(camnet.pred):
-            correct = True
-        else:
-            correct = False
-        if correct and not nan_nums:
-            avg_inc = True
-        else:
-            avg_inc = False
-
-        df = pd.DataFrame([{
-            "img_name": os.path.basename(shape_lbls[0]),
-            "img_path": shape_lbls[0],
-            "label": bool(lbl),
-            "prediction": bool(camnet.pred),
-            "correct": correct,
-            "nan_array": nan_nums,
-            "avg_include": avg_inc
-
-        }])
-        # print(df[["avg_include", "nan_array", "correct"]])
-        df_camstats = df_camstats.append(df)
-        # print(f"lbl{int(lbl)},pred{int(camnet.pred)}")
-    return cam_array, df_camstats
-
-
 def save_all_gcams(net_name):
     print("Getting GradCAM results...")
 
@@ -237,6 +197,7 @@ def save_all_gcams(net_name):
     net.to(config.device)
 
     for seed, file in enumerate(os.listdir(net_path)):
+        set_seed(int(seed))
         net.load_state_dict(torch.load(os.path.join(net_path, file)))
         if "GoogLeNet" in net_name and "pretrain" not in net_name:
             net.aux_logits = False

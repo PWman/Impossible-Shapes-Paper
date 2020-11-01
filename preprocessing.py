@@ -83,7 +83,7 @@ def get_test_train_split(split=0.2):
     return train_imgs, val_imgs
 
 def edit_imgs(images,save_dir):
-    poss_save_path = os.path.join(save_dir, "Impossible")
+    poss_save_path = os.path.join(save_dir, "Impossible") ###########
     imp_save_path = os.path.join(save_dir, "Possible")
     config.check_make_dir(poss_save_path)
     config.check_make_dir(imp_save_path)

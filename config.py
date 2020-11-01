@@ -32,7 +32,7 @@ target_layers = {
     "VGG16 (pretrained)": ["29"],
     "ResNet18 (pretrained)": ["7"],
     "ResNet50 (pretrained)": ["7"],
-    "GoogLeNet (pretrained)": ["15"],
+    "GoogLeNet (pretrained)": ["15"]
 }
 
 

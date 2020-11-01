@@ -60,7 +60,7 @@ def avg_gradcam(net_name):
         # print(np.sum(MASKS[sidx, iidx, :, :]))
         MASKS[sidx, iidx, :, :] = np.nan
     avg_mask = np.nanmean(MASKS, axis=0)
-    cols = [ "avg_include", "correct", "nan_array", "prediction"]
+    cols = ["avg_include", "correct", "nan_array", "prediction"]
     avg_gstats = pd.pivot_table(GSTATS, values=cols,
                                 index=["img_name", "img_path"],
                                 aggfunc=np.sum)
