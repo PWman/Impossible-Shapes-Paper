@@ -147,10 +147,11 @@ class GradCAM(nn.Module):
 def plot_cam_on_img(img_path, mask):
     # if np.amax(mask) == 1:
     # print(mask.shape)
-    if np.amax(mask) != 1:
-        mask = mask / np.amax(mask)
     if np.amin(mask) != 0:
         mask = mask - np.amin(mask)
+    if np.amax(mask) != 1:
+        mask = mask / np.amax(mask)
+
     cmap = plt.get_cmap("jet")
     # print(mask.shape)
     mask = cmap(mask)
