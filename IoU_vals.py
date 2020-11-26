@@ -37,31 +37,47 @@ def get_cam_mask(net_name,img_name):
 
     img_idx = int(df_camstats[df_camstats["img_name"] == img_name].index[0])
     mask = all_masks[img_idx]
+    mask = mask-np.amin(mask)
     mask = mask/np.amax(mask)
 
     return mask
 
-def get_background_IoU_mask(net_name, img_name):
-    img_path = os.path.join(config.prepro_dir,"Validation","Possible",img_name)
-    cam_mask = get_cam_mask(net_name,img_name)
-    ffil_img = get_ffil_img(img_path)
-    IoU_mask = np.multiply(ffil_img,cam_mask)
-    # IoU_mask = IoU_mask/np.amax(IoU_mask)
-    return IoU_mask
+# def get_background_IoU_mask(net_name, img_name):
+#     img_path = os.path.join(config.prepro_dir,"Validation","Possible",img_name)
+#     cam_mask = get_cam_mask(net_name,img_name)
+#     ffil_img = get_ffil_img(img_path)
+#     IoU_mask = np.multiply(ffil_img,cam_mask)
+#     # IoU_mask = IoU_mask/np.amax(IoU_mask)
+#     return IoU_mask
 
 def get_imposs_heatmap(coordinates):
     heatmap, xedges, yedges = np.histogram2d([coordinates[0]],[coordinates[1]], bins=(range(225), range(225)))
     heatmap = heatmap.T
     heatmap = gaussian_filter(heatmap,24)
     heatmap = heatmap/np.amax(heatmap)
+    heatmap[np.where(heatmap>=0.1)] = 1
+    heatmap[np.where(heatmap<0.1)] = 0
     return heatmap
-
-def get_impossibleROI_IoU_mask(net_name, img_name, ROI_heatmap):
-    cam_mask = get_cam_mask(net_name,img_name)
-    IoU_mask = np.multiply(ROI_heatmap,cam_mask)
-    IoU_mask = IoU_mask/np.amax(IoU_mask)
-    return IoU_mask
-
+#
+# def get_impossibleROI_IoU_mask(net_name, img_name, ROI_heatmap):
+#     cam_mask = get_cam_mask(net_name,img_name)
+#     IoU_mask = np.multiply(ROI_heatmap,cam_mask)
+#     IoU_mask = IoU_mask/np.amax(IoU_mask)
+#     return IoU_mask
+#
+#
+# def get_IoU_ratio(mask,threshold,return_img=False):
+#     all_regions = np.where(mask != 0)
+#     target_regions = np.where(mask > threshold)
+#     size_all_regions = len(all_regions[0])
+#     size_target_regions = len(target_regions[0])
+#     ratio = size_target_regions/size_all_regions
+#     if return_img:
+#         new_mask = np.zeros((mask.shape))
+#         new_mask[target_regions] = 1
+#         return ratio,new_mask
+#     else:
+#         return ratio
 val_imgs = os.listdir(os.path.join(config.prepro_dir,"Validation","Possible"))
 
 imposs_coordinate = {"impossa1":[147,49],
@@ -74,38 +90,83 @@ imposs_coordinate = {"impossa1":[147,49],
                      "impossi5":[88,92]
                      }
 
-def get_IoU_ratio(mask,threshold,return_img=False):
-    all_regions = np.where(mask != 0)
-    target_regions = np.where(mask > threshold)
-    size_all_regions = len(all_regions[0])
-    size_target_regions = len(target_regions[0])
-    ratio = size_target_regions/size_all_regions
-    if return_img:
-        new_mask = np.zeros((mask.shape))
-        new_mask[target_regions] = 1
-        return ratio,new_mask
-    else:
-        return ratio
+def get_IoU(region,gcam):
+    if np.amin(gcam) != 0:
+        gcam = gcam - np.amin(gcam)
+    if np.amax(gcam) != 1:
+        gcam = gcam / np.amax(gcam)
+
+    ROI_mask = np.multiply(gcam,region)
+    # inv_ROI_mask = np.multiply(gcam,1-region)
+    return np.sum(ROI_mask)/np.sum(gcam)
 
 
-df_IoU = pd.DataFrame([])
-for img_name in val_imgs:
-    print(img_name)
-    img_file = os.path.join(config.prepro_dir,"Validation","Possible",img_name)
-    img = plt.imread(img_file)
+    # s1 = np.sum(ROI_mask)
+    # s2 = np.sum(region)
+    # r1 = s1/s2
+    # s3 = np.sum(inv_ROI_mask)
+    # s4 = np.sum(1-region)
+    # r2 = s3/s4
+    #
+    # tot_frac = np.sum(gcam)/(224*224)
+    #
+    # IoU = r1*(1-r2)
+    #
+    # return IoU/tot_frac
 
-    coordinates = imposs_coordinate[img_name.replace(".bmp", "")]
-    ROI_hmap = get_imposs_heatmap(coordinates)
-    ROI_mask = get_impossibleROI_IoU_mask("AlexNet",img_name,ROI_hmap)
-    background_mask = get_background_IoU_mask("AlexNet",img_name)
+val_imgs_POSS = os.listdir(os.path.join(config.prepro_dir,"Validation","Impossible"))
 
-    save_name = img_name.replace(".bmp", "")
 
-    background_IoU,background_target_mask = get_IoU_ratio(background_mask,threshold=0.5,return_img=True)
-    ROI_IoU,ROI_target_mask = get_IoU_ratio(ROI_mask,threshold=0.5,return_img=True)
+for expt_dir in [config.expt1_dir,config.expt2_dir]:
+    excel_writer = pd.ExcelWriter(os.path.join(expt_dir, "IoU_vals.xlsx"),
+                                  engine="xlsxwriter")
+    for net in config.DNNs:
+        df_IoU = pd.DataFrame([])
+        for img_name in val_imgs:
+            print(img_name)
+            img_file = os.path.join(config.prepro_dir, "Validation", "Possible", img_name)
+            img = plt.imread(img_file)
 
-    df = pd.DataFrame([{"image":save_name,"ROI_IoU":ROI_IoU,"background_IoU":background_IoU}])
-    df_IoU = df_IoU.append(df)
+            coordinates = imposs_coordinate[img_name.replace(".bmp", "")]
+            ROI_mask = get_imposs_heatmap(coordinates)
+            background_mask = get_ffil_img(os.path.join(config.prepro_dir, "Validation", "Possible", img_name))
+            cam_mask = get_cam_mask(net, img_name)
+
+            ROI_IoU = get_IoU(ROI_mask, cam_mask)
+            background_IoU = get_IoU(background_mask, cam_mask)
+
+            save_name = img_name.replace(".bmp", "")
+            df = pd.DataFrame([{"image": save_name, "ROI_IoU": ROI_IoU, "background_IoU": background_IoU}])
+            df_IoU = df_IoU.append(df)
+            df_IoU.to_excel(excel_writer, sheet_name=net)
+
+        for img_name in val_imgs_POSS:
+            img_file = os.path.join(config.prepro_dir, "Validation", "Impossible", img_name)
+            img = plt.imread(img_file)
+
+            background_mask = get_ffil_img(os.path.join(config.prepro_dir, "Validation", "Impossible", img_name))
+            cam_mask = get_cam_mask(net, img_name)
+
+            background_IoU = get_IoU(background_mask, cam_mask)
+
+            save_name = img_name.replace(".bmp", "")
+            df = pd.DataFrame([{"image": save_name, "ROI_IoU": np.nan, "background_IoU": background_IoU}])
+            df_IoU = df_IoU.append(df)
+            df_IoU.to_excel(excel_writer, sheet_name=net)
+
+    excel_writer.save()
+    # plt.imshow(img)
+
+
+
+    # background_mask = get_background_IoU_mask("AlexNet",img_name)
+    #
+    #
+    # background_IoU,background_target_mask = get_IoU_ratio(background_mask,threshold=0.5,return_img=True)
+    # ROI_IoU,ROI_target_mask = get_IoU_ratio(ROI_mask,threshold=0.5,return_img=True)
+    #
+
+
     # SAVE_IoU_IMAGES
     # plt.figure()
     # plt.imshow(img)
@@ -127,44 +188,37 @@ for img_name in val_imgs:
     # plt.title(img_name)
     # save_name = img_name.replace(".bmp", "")
     # plt.savefig(os.path.join(r"C:\Users\Peter\Documents\chosen_impossible_locs",f"{save_name}_hmap"))
-
-
-
-
-"""
-CHARLES DATA
-
-val_imgs = os.listdir(os.path.join(config.prepro_dir,"Validation","Possible"))
-val_img_paths = [os.path.join(config.prepro_dir,"Validation","Possible",i) for i in val_imgs]
-val_imgs = [i.replace(".bmp","") for i in val_imgs]
-img_path_mapping = dict(zip(val_imgs,val_img_paths))
-
-df_imp_locs = pd.read_csv(os.path.join(config.shapes_basedir,"impossible_locations.csv"))
-
-CHARLES DATA
-for img_name in df_imp_locs["shape"].unique():
-    data = df_imp_locs[df_imp_locs["shape"] == img_name]
-
-    x = [i*224/350 for i in data["x"]]
-    y = [i*224/350 for i in data["y"]]
-
-    img = plt.imread(img_path_mapping[img_name])
-    plt.figure()
-    plt.imshow(img,alpha=0.5)
-    plt.scatter(x,y)
-"""
-
-"""
-DISS DATA
-ROI_dir = r"C:\Users\Peter\Desktop\ROI"
-all_data = pd.DataFrame([])
-for file in os.listdir(ROI_dir):
-    if "csv" in file:
-        df = pd.read_csv(os.path.join(ROI_dir,file))
-        df = df.drop(columns="response_time_mouse_response")
-        all_data = all_data.append(df,ignore_index=True)
-all_data = all_data[~all_data.image.str.contains("_")]
-"""
+#
+# CHARLES DATA
+#
+# val_imgs = os.listdir(os.path.join(config.prepro_dir,"Validation","Possible"))
+# val_img_paths = [os.path.join(config.prepro_dir,"Validation","Possible",i) for i in val_imgs]
+# val_imgs = [i.replace(".bmp","") for i in val_imgs]
+# img_path_mapping = dict(zip(val_imgs,val_img_paths))
+#
+# df_imp_locs = pd.read_csv(os.path.join(config.shapes_basedir,"impossible_locations.csv"))
+#
+# CHARLES DATA
+# for img_name in df_imp_locs["shape"].unique():
+#     data = df_imp_locs[df_imp_locs["shape"] == img_name]
+#
+#     x = [i*224/350 for i in data["x"]]
+#     y = [i*224/350 for i in data["y"]]
+#
+#     img = plt.imread(img_path_mapping[img_name])
+#     plt.figure()
+#     plt.imshow(img,alpha=0.5)
+#     plt.scatter(x,y)
+#
+# DISS DATA
+# ROI_dir = r"C:\Users\Peter\Desktop\ROI"
+# all_data = pd.DataFrame([])
+# for file in os.listdir(ROI_dir):
+#     if "csv" in file:
+#         df = pd.read_csv(os.path.join(ROI_dir,file))
+#         df = df.drop(columns="response_time_mouse_response")
+#         all_data = all_data.append(df,ignore_index=True)
+# all_data = all_data[~all_data.image.str.contains("_")]
 
 # img_mask_dir = os.path.join(config.shapes_basedir,"backgrounds")
 # config.check_make_dir(img_mask_dir)
