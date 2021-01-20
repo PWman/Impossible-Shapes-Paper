@@ -34,16 +34,16 @@ class Preprocess:
                 print("Please input scale factor as float or int")
 
             data_transforms = transforms.Compose([
-                transforms.RandomAffine(degrees=360, scale=scale_factor),
+                transforms.RandomAffine(degrees=360, scale=scale_factor, resample=Image.BICUBIC),
                 transforms.RandomHorizontalFlip(),
-                transforms.Resize((img_size, img_size)),
+                transforms.Resize((img_size, img_size), Image.BICUBIC),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
             ])
         else:
             data_transforms = transforms.Compose([
-                transforms.Resize((img_size, img_size)),
+                transforms.Resize((img_size, img_size), Image.BICUBIC),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])

@@ -177,12 +177,19 @@ def save_all_cmats(net_name):
         np.save(os.path.join(val_dir, f"{seed}"), cm_v)
 
 
-def save_all_gcams(net_name):
+def save_all_gcams(net_name,train_data=False):
     print("Getting GradCAM results...")
 
     net_path = os.path.join(config.raw_dir, net_name, "models")
 
+
     gcam_dir = os.path.join(config.raw_dir, net_name, "gradCAM")
+    config.check_make_dir(gcam_dir)
+    if train_data:
+        gcam_dir = os.path.join(gcam_dir,"training")
+    else:
+        gcam_dir = os.path.join(gcam_dir,"validation")
+
     gstat_dir = os.path.join(gcam_dir, "scores")
     mask_dir = os.path.join(gcam_dir, "masks")
     config.check_make_dir(gcam_dir)
@@ -203,7 +210,10 @@ def save_all_gcams(net_name):
             net.aux_logits = False
             net.aux1 = None
             net.aux2 = None
-        cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name])
+        if train_data:
+            cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name],train_data=True)
+        else:
+            cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name])
         np.save(os.path.join(mask_dir, f"{seed}"), cam_array)
         cstats.to_csv(os.path.join(gstat_dir, f"{seed}.csv"))
 
@@ -216,6 +226,7 @@ def train_test_network(net_name, scale_factor=None):
         net_name = f"{net_name} sf={scale_factor}"
     save_all_cmats(net_name)
     save_all_gcams(net_name)
+    # save_all_gcams(net_name,train_data=True)
     return
 
 
@@ -223,6 +234,7 @@ if __name__ == "__main__":
     for net in config.DNNs:
         train_test_network(net)
         train_test_network(net, scale_factor=0.5)
+        save_all_gcams(f"{net} sf=0.5")
 
     # train_test_network("AlexNet (pretrained)", scale_factor=0.5)
     # train_test_network("VGG11 (pretrained)", scale_factor=0.5)
@@ -235,7 +247,7 @@ if __name__ == "__main__":
 
     # train_test_network("GoogLeNet", scale_factor=0.5)
     # for net in config.DNNs:
-    #     if "pretrain" in net:
+    #     if "pretrain" in net:0
     #         print(net)
     #         save_all_cmats(f"{net} sf=0.5")
     #         save_all_gcams(f"{net} sf=0.5")
