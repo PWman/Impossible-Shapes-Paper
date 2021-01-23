@@ -38,7 +38,7 @@ def total_cmats(net_name):
 
 
 def avg_gradcam(net_name):
-    gcam_path = os.path.join(config.raw_dir, net_name, "gradCAM")
+    gcam_path = os.path.join(config.raw_dir, net_name, "gradCAM", "validation")
     mask_path = os.path.join(gcam_path, "masks")
     gstat_path = os.path.join(gcam_path, "scores")
 
@@ -109,6 +109,7 @@ def avg_save_net_results(net_name):
 
 if __name__ == "__main__":
     for net in config.DNNs:
+        avg_save_net_results(f"{net}")
         avg_save_net_results(f"{net} sf=0.5")
 
         # if "pretrain" in net:

@@ -142,10 +142,12 @@ def graph_all_results(expt_dir):
     plt.figure(1)
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
+    plt.legend(leg1)
     plt.savefig(os.path.join(expt_dir, "Validation Accuracies (no pretraining).png"))
     plt.figure(2)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
+    plt.legend(leg2)
     plt.savefig(os.path.join(expt_dir, "Validation Losses (no pretraining).png"))
 
     plt.figure(3)
@@ -156,6 +158,7 @@ def graph_all_results(expt_dir):
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.savefig(os.path.join(expt_dir, "Validation Losses (with pretraining)"))
+    plt.close("all")
     return
 
 
@@ -239,8 +242,7 @@ def collate_cmats(expt_dir):
 if __name__ == "__main__":
     collate_cmats(config.expt1_dir)
     collate_cmats(config.expt2_dir)
-
-    # graph_all_results(config.expt2_dir)
-    # collate_all_results()
-    #
-    # collate_all_results(scale_factor=0.5)
+    collate_all_results()
+    collate_all_results(scale_factor=0.5)
+    graph_all_results(config.expt1_dir)
+    graph_all_results(config.expt2_dir)

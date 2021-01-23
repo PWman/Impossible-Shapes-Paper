@@ -181,8 +181,6 @@ def save_all_gcams(net_name,train_data=False):
     print("Getting GradCAM results...")
 
     net_path = os.path.join(config.raw_dir, net_name, "models")
-
-
     gcam_dir = os.path.join(config.raw_dir, net_name, "gradCAM")
     config.check_make_dir(gcam_dir)
     if train_data:
@@ -231,10 +229,17 @@ def train_test_network(net_name, scale_factor=None):
 
 
 if __name__ == "__main__":
-    for net in config.DNNs:
-        train_test_network(net)
-        train_test_network(net, scale_factor=0.5)
-        save_all_gcams(f"{net} sf=0.5")
+    # for net in config.DNNs:
+    #     train_test_network(net)
+    #     train_test_network(net, scale_factor=0.5)
+    #     save_all_gcams(f"{net} sf=0.5")
+    # train_test_network("AlexNet",  scale_factor=0.5)
+    # train_test_network("AlexNet", scale_factor=0.5)
+    # train_test_network("VGG11", scale_factor=0.5)
+    # train_test_network("VGG16", scale_factor=0.5)
+    # train_test_network("ResNet18", scale_factor=0.5)
+    train_test_network("ResNet50", scale_factor=0.5)
+    # train_test_network("GoogLeNet", scale_factor=0.5)
 
     # train_test_network("AlexNet (pretrained)", scale_factor=0.5)
     # train_test_network("VGG11 (pretrained)", scale_factor=0.5)
@@ -250,6 +255,8 @@ if __name__ == "__main__":
     #     if "pretrain" in net:0
     #         print(net)
     #         save_all_cmats(f"{net} sf=0.5")
+    #
+    #         ,m-
     #         save_all_gcams(f"{net} sf=0.5")
     # save_all_cmats("VGG11 sf=0.5")
     # save_all_gcams("VGG11 sf=0.5")
