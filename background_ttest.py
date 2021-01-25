@@ -16,6 +16,7 @@ from scipy.ndimage.filters import gaussian_filter
 from scipy import stats
 from more_utils import set_seed
 from copy import copy
+from math import floor, log10
 
 matplotlib.use("TkAgg")
 # set_seed(2)
@@ -23,8 +24,9 @@ plt.style.use("seaborn")
 
 
 def get_ffil_img(img):
-    img = img.convert("1")
+    img = img.convert("L")
     img_arr = np.array(img).astype(int)
+    img_arr[np.where(img_arr > 0)] = 1
 
     corner_inds = [(0, 0),
                    (img_arr.shape[0] - 1, 0),
@@ -43,7 +45,8 @@ def get_ffil_img(img):
             lineinds = tuple(np.transpose(np.where(ffil_arr == 1))[0])
         except IndexError:
             break
-    ffil_arr = flood_fill(ffil_arr, (0, 0), 1)
+    for ind in corner_inds:
+        ffil_arr = flood_fill(ffil_arr, ind, 1)
     # ffil_arr = 1 - ffil_arr
 
     return ffil_arr
@@ -122,8 +125,48 @@ def get_background_proportion_20iter(train_data=True,zoom_augs=False):
     # plt.imshow(ffil_img)
     # break
 def ttest_and_plot(df):
+    def round_sig(x,sig=2):
+        return round(x, sig-int(floor(log10(abs(x))))-1)
+
     bg_poss = df[df["label"] == "Possible"].background_pct
     bg_imp = df[df["label"] == "Impossible"].background_pct
 
-    plt.hist(bg_poss,color="r")
-    plt.hist(bg_imp,color="b")
+    bins = np.linspace(min(df["background_pct"]),max(df["background_pct"]), 20)
+
+
+    tval,pval = stats.ttest_ind(bg_poss,bg_imp)
+    print(f"pval = {round(pval,6)}")
+    x_p, y_p, _ = plt.hist(bg_poss, bins=bins,color="r",alpha=0.5)
+    x_i, y_i, _ = plt.hist(bg_imp, bins=bins,color="b",alpha=0.5)
+
+    xmin,xmax = plt.xlim()
+    x = np.linspace(xmin,xmax,100)
+
+    mu_p, std_p = stats.norm.fit(bg_poss)
+    mu_i, std_i = stats.norm.fit(bg_imp)
+
+    pdf_p = stats.norm.pdf(x,mu_p,std_p)
+    pdf_i = stats.norm.pdf(x,mu_i,std_i)
+
+    p_mul = x_p.max()/max(pdf_p)
+    i_mul = x_i.max()/max(pdf_i)
+
+    plt.plot(x,pdf_p*p_mul, color="r")
+    plt.plot(x,pdf_i*i_mul, color="b")
+
+    plt.legend([
+        f"Possible: mu={round_sig(mu_p,2)}, std={round_sig(std_p,2)}",
+        f"Impossible: mu={round_sig(mu_i,2)}, std={round_sig(std_i,2)}"
+    ])
+
+    plt.title(f"Background T-Test: t-value={round_sig(tval,3)}, p-value={round_sig(pval,2):.2e}")
+
+if __name__ == "__main__":
+    df_study1 = get_background_proportion_20iter(train_data=True,zoom_augs=False)
+    df_study2 = get_background_proportion_20iter(train_data=True,zoom_augs=True)
+    plt.figure()
+    ttest_and_plot(df_study1)
+    plt.savefig(os.path.join(config.expt1_dir, "Background T-test.png"))
+    plt.figure()
+    ttest_and_plot(df_study2)
+    plt.savefig(os.path.join(config.expt2_dir, "Background T-test.png"))
