@@ -113,10 +113,16 @@ def get_background_proportion_1iter(train_data=True, zoom_augs=False):
 
 def get_background_proportion_20iter(train_data=True,zoom_augs=False):
     df_all = pd.DataFrame([])
+
     for i in range(20):
         set_seed(i)
         print(f"Testing iteration {i}...")
-        df = get_background_proportion_1iter(train_data=train_data, zoom_augs=zoom_augs)
+        df_raw = get_background_proportion_1iter(train_data=train_data, zoom_augs=zoom_augs)
+        imp_pct = np.mean(df_raw[df_raw["label" == "Impossible"]].background_pct)
+        df_i = pd.DataFrame([{"label": "Impossible", "background_pct": imp_pct}])
+        poss_pct = np.mean(df_raw[df_raw["label" == "Possible"]].background_pct)
+        df_p = pd.DataFrame([{"label": "Possible","background_pct": poss_pct}])
+        df = df_p.append(df_i)
         df["seed"] = i
         df_all = df_all.append(df)
     return df_all
