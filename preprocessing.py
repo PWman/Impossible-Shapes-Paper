@@ -1,6 +1,9 @@
 import os
 import config
 import random
+import numpy as np
+import matplotlib.pyplot as plt
+from math import floor,ceil
 from torch import utils
 from PIL import Image, ImageOps
 from torch.utils.data import DataLoader
@@ -8,18 +11,14 @@ from torchvision import transforms, datasets
 
 
 class Preprocess:
-    # img_size = 224
-    # batch_size = 16
-    # split = 0.2
-    # colour = False
-
-    def __init__(self, img_size=224, batch_size=16,
+    def __init__(self, data_dir,
+                 img_size=224, batch_size=16,
                  augment=True, scale_factor=None,
                  shuffle=True):
         # INITIALISE PARAMETERS
         self.img_size = img_size
         self.batch_size = batch_size
-        self.new_dir = config.prepro_dir
+        self.data_dir = data_dir
 
         # CREATE DATA AUGMENTER
         if augment:
@@ -49,8 +48,8 @@ class Preprocess:
                                      std=[0.229, 0.224, 0.225])
             ])
 
-        train_dir = os.path.join(self.new_dir, "Training")
-        test_dir = os.path.join(self.new_dir, "Validation")
+        train_dir = os.path.join(self.data_dir, "Training")
+        test_dir = os.path.join(self.data_dir, "Validation")
 
         self.train_dataset = datasets.ImageFolder(train_dir, data_transforms)
         self.train_loader = utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=shuffle)
@@ -82,7 +81,37 @@ def get_test_train_split(split=0.2):
 
     return train_imgs, val_imgs
 
-def edit_imgs(images,save_dir):
+def get_pad_dist(img):
+    def find_furtherst(lines,origin):
+        max_dist = 0
+        for r,c in zip(lines[0],lines[1]):
+            dist = np.sqrt((r-origin[0])**2 + (c-origin[1])**2)
+            if dist>max_dist:
+                max_dist = dist
+        return max_dist
+
+    im_arr = np.array(img.convert("1"))
+    lines = np.where(im_arr != 0)
+    origin_coordinates = ((im_arr.shape[0]+1)/2, (im_arr.shape[1]+1)/2)
+
+    max_dist = find_furtherst(lines,origin_coordinates)
+
+    return ceil(max_dist - im_arr.shape[0]/2)
+
+def edit_background(img,pad_val):
+    if pad_val>0:
+        img_edit = ImageOps.expand(img, border=pad_val, fill=0)
+    elif pad_val<0:
+        pad_val = floor(np.abs(pad_val)/2)
+        lt = pad_val
+        rb = 224-pad_val
+        img_edit = img.crop((lt,lt,rb,rb))
+    else:
+        img_edit = img
+    return img_edit
+
+
+def preprocess_save_imgs(images,save_dir,rescale_background=False):
     poss_save_path = os.path.join(save_dir, "Possible") ###########
     imp_save_path = os.path.join(save_dir, "Impossible")
     config.check_make_dir(poss_save_path)
@@ -91,21 +120,41 @@ def edit_imgs(images,save_dir):
     for imp_img, poss_img in images:
         imposs_loc = os.path.join(config.original_dir,"Impossible",imp_img)
         poss_loc = os.path.join(config.original_dir,"Possible",poss_img)
-        img_p = ImageOps.invert(Image.open(poss_loc)).resize((224,224),Image.BICUBIC)
-        img_i = ImageOps.invert(Image.open(imposs_loc)).resize((224,224),Image.BICUBIC)
+        img_p = ImageOps.invert(Image.open(poss_loc)).resize((224,224), Image.BICUBIC)
+        img_i = ImageOps.invert(Image.open(imposs_loc)).resize((224,224), Image.BICUBIC)
+
+        if rescale_background:
+            pad_p = get_pad_dist(img_p)
+            img_p = edit_background(img_p, pad_p).resize((224,224), Image.BICUBIC)
+            pad_i = get_pad_dist(img_i)
+            img_i = edit_background(img_i, pad_i).resize((224,224), Image.BICUBIC)
 
         img_p.save(os.path.join(poss_save_path, poss_img))
         img_i.save(os.path.join(imp_save_path, imp_img))
+
     return
 
 
 if __name__ == "__main__":
     random.seed(0)
-    train_dir = os.path.join(config.prepro_dir,"Training")
-    val_dir = os.path.join(config.prepro_dir,"Validation")
-    config.check_make_dir(train_dir)
-    config.check_make_dir(val_dir)
+    prepro_expt1_dir = os.path.join(config.prepro_dir, "Study 1")
+    train_dir_expt1 = os.path.join(prepro_expt1_dir, "Training")
+    val_dir_expt1 = os.path.join(prepro_expt1_dir, "Validation")
+    config.check_make_dir(prepro_expt1_dir)
+    config.check_make_dir(train_dir_expt1)
+    config.check_make_dir(val_dir_expt1)
+
+    prepro_expt2_dir = os.path.join(config.prepro_dir, "Study 2")
+    train_dir_expt2 = os.path.join(prepro_expt2_dir, "Training")
+    val_dir_expt2 = os.path.join(prepro_expt2_dir, "Validation")
+    config.check_make_dir(prepro_expt2_dir)
+    config.check_make_dir(train_dir_expt2)
+    config.check_make_dir(val_dir_expt2)
 
     train_imgs, val_imgs = get_test_train_split()
-    edit_imgs(train_imgs,train_dir)
-    edit_imgs(val_imgs,val_dir)
+    preprocess_save_imgs(train_imgs,save_dir=train_dir_expt1,rescale_background=False)
+    preprocess_save_imgs(val_imgs,save_dir=val_dir_expt1,rescale_background=False)
+
+    preprocess_save_imgs(train_imgs,save_dir=train_dir_expt2,rescale_background=True)
+    preprocess_save_imgs(val_imgs,save_dir=val_dir_expt2,rescale_background=True)
+
