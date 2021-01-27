@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from torchvision import transforms
 from preprocessing import Preprocess
-from net_utils import initialise_DNN
+from initialise_nets import initialise_DNN
 from gcam_utils import gcam_all_imgs, plot_cam_on_img
 from analysis_utils import avg_gradcam
 from more_utils import set_seed

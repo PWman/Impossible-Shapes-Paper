@@ -13,7 +13,7 @@ from preprocessing import Preprocess
 from torch import nn
 from PIL import Image
 import matplotlib.pyplot as plt
-from net_utils import initialise_DNN
+from initialise_nets import initialise_DNN
 """
 Parts of the code here (i.e. GradCAM, FeatureExtractor and ModelOutputs objects) were modified from Jacob Gildenblat's (jacobgil) Pytorch implementation of GradCAM.
 The original code is under MIT license and is available at the link below:

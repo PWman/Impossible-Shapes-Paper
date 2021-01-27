@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 from torchvision import transforms
-from net_utils import initialise_DNN
+from initialise_nets import initialise_DNN
 from analysis_utils import avg_gradcam, cm_arr_to_df
 from skimage.segmentation import flood_fill
 from scipy.ndimage.filters import gaussian_filter

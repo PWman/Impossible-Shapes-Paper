@@ -9,7 +9,7 @@ from torchvision import models
 from torchvision import transforms
 from preprocessing import Preprocess
 from sklearn.metrics import confusion_matrix
-from net_utils import initialise_DNN
+from initialise_nets import initialise_DNN
 from more_utils import set_seed, save_batch
 from gcam_utils import gcam_all_imgs
 

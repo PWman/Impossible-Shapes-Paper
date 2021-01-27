@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from preprocessing import Preprocess
 from torchvision import transforms
-from net_utils import initialise_DNN
+from initialise_nets import initialise_DNN
 from analysis_utils import avg_gradcam
 from skimage.segmentation import flood_fill
 from scipy.ndimage.filters import gaussian_filter
