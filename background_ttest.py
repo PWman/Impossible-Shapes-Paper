@@ -117,12 +117,14 @@ def get_background_proportion_20iter(train_data=True,zoom_augs=False):
     for i in range(20):
         set_seed(i)
         print(f"Testing iteration {i}...")
-        df_raw = get_background_proportion_1iter(train_data=train_data, zoom_augs=zoom_augs)
-        imp_pct = np.mean(df_raw[df_raw["label" == "Impossible"]].background_pct)
-        df_i = pd.DataFrame([{"label": "Impossible", "background_pct": imp_pct}])
-        poss_pct = np.mean(df_raw[df_raw["label" == "Possible"]].background_pct)
-        df_p = pd.DataFrame([{"label": "Possible","background_pct": poss_pct}])
-        df = df_p.append(df_i)
+        df = get_background_proportion_1iter(train_data=train_data, zoom_augs=zoom_augs)
+
+        # df_raw = get_background_proportion_1iter(train_data=train_data, zoom_augs=zoom_augs)
+        # imp_pct = np.mean(df_raw[df_raw["label"] == "Impossible"].background_pct)
+        # df_i = pd.DataFrame([{"label": "Impossible", "background_pct": imp_pct}])
+        # poss_pct = np.mean(df_raw[df_raw["label"] == "Possible"].background_pct)
+        # df_p = pd.DataFrame([{"label": "Possible","background_pct": poss_pct}])
+        # df = df_p.append(df_i)
         df["seed"] = i
         df_all = df_all.append(df)
     return df_all
@@ -130,6 +132,8 @@ def get_background_proportion_20iter(train_data=True,zoom_augs=False):
     # plt.figure()
     # plt.imshow(ffil_img)
     # break
+
+
 def ttest_and_plot(df):
     def round_sig(x,sig=2):
         return round(x, sig-int(floor(log10(abs(x))))-1)
@@ -167,12 +171,29 @@ def ttest_and_plot(df):
 
     plt.title(f"Background T-Test: t-value={round_sig(tval,3)}, p-value={round_sig(pval,2):.2e}")
 
+def get_img_average(df_all):
+    df_avg = pd.DataFrame([])
+    for img_name in df_all.image.unique():
+        data = df_all[df_all["image"] == img_name]
+        lbl = data.iloc[0]["label"]
+        bg_pct = np.mean(data["background_pct"])
+        df = pd.DataFrame([{
+            "image":img_name,
+            "label":lbl,
+            "background_pct": bg_pct
+        }])
+        df_avg = df_avg.append(df)
+    return df_avg
+
 if __name__ == "__main__":
     df_study1 = get_background_proportion_20iter(train_data=True,zoom_augs=False)
     df_study2 = get_background_proportion_20iter(train_data=True,zoom_augs=True)
+    df_avg_s1 = get_img_average(df_study1)
+    df_avg_s2 = get_img_average(df_study2)
+
     plt.figure()
-    ttest_and_plot(df_study1)
+    ttest_and_plot(df_avg_s1)
     plt.savefig(os.path.join(config.expt1_dir, "Background T-test.png"))
     plt.figure()
-    ttest_and_plot(df_study2)
+    ttest_and_plot(df_avg_s2)
     plt.savefig(os.path.join(config.expt2_dir, "Background T-test.png"))

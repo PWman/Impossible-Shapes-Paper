@@ -3,4 +3,4 @@
 *.pt
 **/.idea
 **/__pychache__
-**/__Check_Training_Images__
+**/Check_Training_Images

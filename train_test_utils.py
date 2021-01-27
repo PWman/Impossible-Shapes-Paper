@@ -233,12 +233,19 @@ if __name__ == "__main__":
     #     train_test_network(net)
     #     train_test_network(net, scale_factor=0.5)
     #     save_all_gcams(f"{net} sf=0.5")
-    # train_test_network("AlexNet",  scale_factor=0.5)
+
+    # train_test_network("AlexNet")
+    train_test_network("VGG11")
+    # train_test_network("VGG16", scale_factor=0.5)
+    # train_test_network("ResNet18", scale_factor=0.5)
+    # train_test_network("ResNet50", scale_factor=0.5)
+    # train_test_network("GoogLeNet", scale_factor=0.5)
+
     # train_test_network("AlexNet", scale_factor=0.5)
     # train_test_network("VGG11", scale_factor=0.5)
     # train_test_network("VGG16", scale_factor=0.5)
     # train_test_network("ResNet18", scale_factor=0.5)
-    train_test_network("ResNet50", scale_factor=0.5)
+    # train_test_network("ResNet50", scale_factor=0.5)
     # train_test_network("GoogLeNet", scale_factor=0.5)
 
     # train_test_network("AlexNet (pretrained)", scale_factor=0.5)
