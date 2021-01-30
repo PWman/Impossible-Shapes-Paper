@@ -42,6 +42,36 @@ def cm_arr_to_df(arr):
     df.index = ["Actual Imposs", "Actual Poss"]
     return df
 
+
+def get_ffil_img(img):
+    img = img.convert("L")
+    img_arr = np.array(img).astype(int)
+    img_arr[np.where(img_arr > 0)] = 1
+
+    corner_inds = [(0, 0),
+                   (img_arr.shape[0] - 1, 0),
+                   (0, img_arr.shape[1] - 1),
+                   (img_arr.shape[0] - 1, img_arr.shape[1] - 1)]
+
+    ffil_arr = copy(img_arr)
+    for ind in corner_inds:
+        if img_arr[ind[0], ind[1]] == 0:
+            ffil_arr = flood_fill(ffil_arr, ind, 2)
+
+    lineinds = tuple(np.transpose(np.where(ffil_arr == 1))[0])
+    while len(lineinds) > 0:
+        ffil_arr = flood_fill(ffil_arr, lineinds, 0)
+        try:
+            lineinds = tuple(np.transpose(np.where(ffil_arr == 1))[0])
+        except IndexError:
+            break
+    for ind in corner_inds:
+        ffil_arr = flood_fill(ffil_arr, ind, 1)
+    # ffil_arr = 1 - ffil_arr
+
+    return ffil_arr
+
+
 # def average_results(net_arch):
 #     avg_results = []
 #     scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])

@@ -66,13 +66,7 @@ def get_ffil_img(img):
 #         df_all = df_all.append(df)
 #     return df_all
 
-data_transforms = transforms.Compose([
-    transforms.Normalize(mean=[-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
-                         std=[1 / 0.229, 1 / 0.224, 1 / 0.225]),
-    transforms.ToPILImage(),
-    transforms.Grayscale()
 
-])
 
 
 # def binarize(img):
