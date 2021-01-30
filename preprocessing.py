@@ -157,4 +157,3 @@ if __name__ == "__main__":
 
     preprocess_save_imgs(train_imgs,save_dir=train_dir_expt2,rescale_background=True)
     preprocess_save_imgs(val_imgs,save_dir=val_dir_expt2,rescale_background=True)
-

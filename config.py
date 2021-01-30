@@ -68,6 +68,11 @@ check_make_dir(original_dir)
 check_make_dir(prepro_dir)
 check_make_dir(check_train_dir)
 
+raw_dir_expt1 = os.path.join(raw_dir, "Study 1")
+raw_dir_expt2 = os.path.join(raw_dir, "Study 2")
+check_make_dir(raw_dir_expt1)
+check_make_dir(raw_dir_expt2)
+
 expt1_dir = os.path.join(results_basedir, "Study 1")
 expt2_dir = os.path.join(results_basedir, "Study 2")
 check_make_dir(expt1_dir)

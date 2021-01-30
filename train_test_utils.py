@@ -97,23 +97,21 @@ def train_net(p, net, opt):
     return results
 
 
-def train_all_nets(net_name, scale_factor=None):  # save_models=True,
-    # if save_models:
-    if scale_factor is None:
-        result_dir = os.path.join(config.raw_dir, f"{net_name}")
-        p = Preprocess()
-        # model_dir = os.path.join(config.model_dir, f"{net_name}")
+def train_nets_all_seeds(net_name, study_1=True):  # save_models=True,
+    if study_1:
+        result_dir = os.path.join(config.raw_dir_expt1,net_name)
+        img_dir = os.path.join(config.prepro_dir,"Study 1")
     else:
-        result_dir = os.path.join(config.raw_dir, f"{net_name} sf={scale_factor}")
-        p = Preprocess(scale_factor=scale_factor)
-
-        # model_dir = os.path.join(config.model_dir, f"{net_name} sf={scale_factor}")
+        result_dir = os.path.join(config.raw_dir_expt2,net_name)
+        img_dir = os.path.join(config.prepro_dir,"Study 2")
 
     config.check_make_dir(result_dir)
     model_dir = os.path.join(result_dir, "models")
     config.check_make_dir(model_dir)
     result_dir = os.path.join(result_dir, "train_results")
     config.check_make_dir(result_dir)
+
+    p = Preprocess(data_dir=img_dir,augment=True, scale_factor=0.9)
 
     for seed in range(config.num_seeds):
         print(f"Testing {net_name} seed {seed}...")
@@ -126,62 +124,70 @@ def train_all_nets(net_name, scale_factor=None):  # save_models=True,
             result_dir, f"{seed}.csv"
         ))
         # if save_models:
-        torch.save(net.state_dict(), os.path.join(model_dir, f"{seed}"))
-
+        torch.save(net.state_dict(), os.path.join(model_dir, f"{seed}.pt"))
     return
 
 
-def get_cm_result(p, model):
-    model.eval()
-    cm_tot_t = np.zeros((2, 2))
-    for img, lbl in p.train_loader:
-        cm_t = feed_net(model, None, img, lbl,
-                        train_net=False,
-                        confusion_matrices=True)
-        cm_tot_t = cm_tot_t + cm_t
-    cm_tot_v = np.zeros((2, 2))
-    for img, lbl in p.test_loader:
-        cm_v = feed_net(model, None, img, lbl,
-                        train_net=False,
-                        confusion_matrices=True)
-        cm_tot_v = cm_tot_v + cm_v
-        # print(cm_tot_t,cm_tot_v)
-    return cm_tot_t, cm_tot_v
+def save_all_cmats(net_name,study_1=True):
+    def get_cm_result(p, model):
+        model.eval()
+        cm_tot_t = np.zeros((2, 2))
+        for img, lbl in p.train_loader:
+            cm_t = feed_net(model, None, img, lbl,
+                            train_net=False,
+                            confusion_matrices=True)
+            cm_tot_t = cm_tot_t + cm_t
+        cm_tot_v = np.zeros((2, 2))
+        for img, lbl in p.test_loader:
+            cm_v = feed_net(model, None, img, lbl,
+                            train_net=False,
+                            confusion_matrices=True)
+            cm_tot_v = cm_tot_v + cm_v
+            # print(cm_tot_t,cm_tot_v)
+        return cm_tot_t, cm_tot_v
 
-
-
-def save_all_cmats(net_name):
     print("Getting confusion matrices...")
-    net_path = os.path.join(config.raw_dir, net_name, "models")
+    if study_1:
+        prepro_dir = os.path.join(config.prepro_dir, "Study 1")
+        model_path = os.path.join(config.raw_dir, "Study 1", net_name, "models")
+        save_dir = os.path.join(config.raw_dir, "Study 1", net_name, "confusion_matrices")
 
-    save_dir = os.path.join(config.raw_dir, net_name, "confusion_matrices")
+    else:
+        prepro_dir = os.path.join(config.prepro_dir, "Study 2")
+        model_path = os.path.join(config.raw_dir, "Study 2", net_name, "models")
+        save_dir = os.path.join(config.raw_dir, "Study 2", net_name, "confusion_matrices")
+
     train_dir = os.path.join(save_dir, "train_data")
-    val_dir = os.path\
-        .join(save_dir, "validation_data")
+    val_dir = os.path.join(save_dir, "validation_data")
     config.check_make_dir(save_dir)
     config.check_make_dir(train_dir)
     config.check_make_dir(val_dir)
-
-    if "sf=" in net_name:
-        net_name = net_name[:net_name.find("sf=0.5") - 1]
         # net_name = net_name.split(" ")[0]
 
-    p = Preprocess(augment=False)
+    p = Preprocess(data_dir=prepro_dir, augment=False)
     net, opt = initialise_DNN(net_name)
     net.to(config.device)
 
-    for seed, file in enumerate(os.listdir(net_path)):
-        net.load_state_dict(torch.load(os.path.join(net_path, file)))
+    for seed, file in enumerate(os.listdir(model_path)):
+        net.load_state_dict(torch.load(os.path.join(model_path, file)))
         cm_t, cm_v = get_cm_result(p, net)
         np.save(os.path.join(train_dir, f"{seed}"), cm_t)
         np.save(os.path.join(val_dir, f"{seed}"), cm_v)
 
 
-def save_all_gcams(net_name,train_data=False):
+def save_all_gcams(net_name, study_1=True, train_data=False):
     print("Getting GradCAM results...")
 
-    net_path = os.path.join(config.raw_dir, net_name, "models")
-    gcam_dir = os.path.join(config.raw_dir, net_name, "gradCAM")
+    if study_1:
+        prepro_dir = os.path.join(config.prepro_dir,"Study 1")
+        net_path = os.path.join(config.raw_dir, "Study 1", net_name, "models")
+        gcam_dir = os.path.join(config.raw_dir, "Study 1", net_name, "gradCAM")
+    else:
+        prepro_dir = os.path.join(config.prepro_dir,"Study 2")
+        net_path = os.path.join(config.raw_dir, "Study 2", net_name, "models")
+        gcam_dir = os.path.join(config.raw_dir, "Study 2", net_name, "gradCAM")
+
+
     config.check_make_dir(gcam_dir)
     if train_data:
         gcam_dir = os.path.join(gcam_dir,"training")
@@ -194,10 +200,7 @@ def save_all_gcams(net_name,train_data=False):
     config.check_make_dir(gstat_dir)
     config.check_make_dir(mask_dir)
 
-    if "sf=" in net_name:
-        net_name = net_name[:net_name.find("sf=0.5") - 1]
-
-    p = Preprocess(batch_size=1, augment=False, shuffle=False)
+    p = Preprocess(data_dir=prepro_dir, batch_size=1, augment=False, shuffle=False)
     net, opt = initialise_DNN(net_name)
     net.to(config.device)
 
@@ -209,64 +212,51 @@ def save_all_gcams(net_name,train_data=False):
             net.aux1 = None
             net.aux2 = None
         if train_data:
-            cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name],train_data=True)
+            cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name], train_data=train_data)
         else:
             cam_array, cstats = gcam_all_imgs(p, net, config.target_layers[net_name])
         np.save(os.path.join(mask_dir, f"{seed}"), cam_array)
         cstats.to_csv(os.path.join(gstat_dir, f"{seed}.csv"))
 
 
-def train_test_network(net_name, scale_factor=None):
-    if scale_factor is None:
-        train_all_nets(net_name)
-    else:
-        train_all_nets(net_name, scale_factor=scale_factor)
-        net_name = f"{net_name} sf={scale_factor}"
-    save_all_cmats(net_name)
-    save_all_gcams(net_name)
+def train_test_network(net_name, study_1=True):
+    train_nets_all_seeds(net_name, study_1=study_1)
+    save_all_cmats(net_name, study_1=study_1)
+    save_all_gcams(net_name, study_1=study_1)
     # save_all_gcams(net_name,train_data=True)
     return
 
 
 if __name__ == "__main__":
     # for net in config.DNNs:
-    #     train_test_network(net)
-    #     train_test_network(net, scale_factor=0.5)
-    #     save_all_gcams(f"{net} sf=0.5")
+    #     train_nets_all_seeds(net,study_1=True)
+    #     train_nets_all_seeds(net,study_1=False)
 
-    # train_test_network("AlexNet")
-    train_test_network("VGG11")
-    # train_test_network("VGG16", scale_factor=0.5)
-    # train_test_network("ResNet18", scale_factor=0.5)
-    # train_test_network("ResNet50", scale_factor=0.5)
-    # train_test_network("GoogLeNet", scale_factor=0.5)
-
-    # train_test_network("AlexNet", scale_factor=0.5)
-    # train_test_network("VGG11", scale_factor=0.5)
-    # train_test_network("VGG16", scale_factor=0.5)
-    # train_test_network("ResNet18", scale_factor=0.5)
-    # train_test_network("ResNet50", scale_factor=0.5)
-    # train_test_network("GoogLeNet", scale_factor=0.5)
-
-    # train_test_network("AlexNet (pretrained)", scale_factor=0.5)
-    # train_test_network("VGG11 (pretrained)", scale_factor=0.5)
-    # train_test_network("VGG16 (pretrained)", scale_factor=0.5)
-    # train_test_network("ResNet18 (pretrained)", scale_factor=0.5)
-    # train_test_network("ResNet50 (pretrained)", scale_factor=0.5)
-    # train_test_network("GoogLeNet (pretrained)", scale_factor=0.5)
-    # save_all_cmats("VGG11 sf=0.5")
-    # save_all_gcams("VGG11 sf=0.5")
-
-    # train_test_network("GoogLeNet", scale_factor=0.5)
-    # for net in config.DNNs:
-    #     if "pretrain" in net:0
-    #         print(net)
-    #         save_all_cmats(f"{net} sf=0.5")
+    # train_nets_all_seeds("AlexNet (pretrained)")
+    # train_nets_all_seeds("VGG11 (pretrained)")
+    # train_nets_all_seeds("VGG16 (pretrained)")
+    # train_nets_all_seeds("ResNet18 (pretrained)")
+    # train_nets_all_seeds("ResNet50 (pretrained)")
+    # train_nets_all_seeds("GoogLeNet (pretrained)")
     #
-    #         ,m-
-    #         save_all_gcams(f"{net} sf=0.5")
-    # save_all_cmats("VGG11 sf=0.5")
-    # save_all_gcams("VGG11 sf=0.5")
+    # train_nets_all_seeds("AlexNet (pretrained)", study_1=False)
+    # train_nets_all_seeds("VGG11 (pretrained)", study_1=False)
+    # train_nets_all_seeds("VGG16 (pretrained)", study_1=False)
+    train_nets_all_seeds("ResNet18 (pretrained)", study_1=False)
+    # train_nets_all_seeds("ResNet50 (pretrained)", study_1=False)
+    # train_nets_all_seeds("GoogLeNet (pretrained)", study_1=False)
+    #
+    # train_nets_all_seeds("AlexNet", study_1=False)
+    # train_nets_all_seeds("VGG11", study_1=False)
+    # train_nets_all_seeds("VGG16", study_1=False)
+    # train_nets_all_seeds("ResNet18", study_1=False)
+    # train_nets_all_seeds("ResNet50", study_1=False)
+    # train_nets_all_seeds("GoogLeNet", study_1=False)
 
-            # train_test_network(net)
-            # train_test_network(net, scale_factor=0.5)
+    # train_nets_all_seeds("AlexNet")
+    # train_nets_all_seeds("VGG11")
+    # train_nets_all_seeds("VGG16")
+    # train_nets_all_seeds("ResNet18")
+    # train_nets_all_seeds("ResNet50")
+    # train_nets_all_seeds("GoogLeNet")
+

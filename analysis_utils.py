@@ -4,15 +4,44 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from gcam_utils import plot_cam_on_img
-from more_utils import plot_and_save, cm_arr_to_df
-
-plt.style.use("seaborn-bright")
+from more_utils import cm_arr_to_df
 
 
-def avg_train_results(net_name):
+def plot_and_save(results,fpath):
+    # PLOT ACCURACY
+    plt.style.use("seaborn-bright")
+
+    plt.clf()
+    plt.plot(results["epoch"], results["acc"], "b")
+    plt.plot(results["epoch"], results["val_acc"], "r-")
+    # plt.title(fpath + " Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend(["Training", "Validation"])
+    plt.xlim(0, config.num_epochs-1)
+    plt.savefig(os.path.join(fpath, "Accuracy.png"))
+
+    # PLOT LOSS
+    plt.clf()
+    plt.plot(results["epoch"], results["loss"], "b-")
+    plt.plot(results["epoch"], results["val_loss"], "r-")
+    # plt.title(fname + " Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(["Training", "Validation"])
+    plt.xlim(0, config.num_epochs-1)
+    plt.savefig(os.path.join(fpath, "Loss.png"))
+    plt.close()
+    return
+
+def avg_train_results(net_name,study_1=True):
+    if study_1:
+        results_path = os.path.join(config.raw_dir, "Study 1", net_name, "train_results")
+    else:
+        results_path = os.path.join(config.raw_dir, "Study 2", net_name, "train_results")
+
     avg_results = []
     scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
-    results_path = os.path.join(config.raw_dir, net_name, "train_results")
     for file in os.listdir(results_path):
         result = pd.read_csv(os.path.join(results_path, file), index_col=0)
         end_result = result[result["epoch"] == max(result["epoch"])]  # .drop(columns=["epoch"])
@@ -22,8 +51,12 @@ def avg_train_results(net_name):
     return sum(avg_results) / len(avg_results), scores
 
 
-def total_cmats(net_name):
-    cm_dir = os.path.join(config.raw_dir, net_name, "confusion_matrices")
+def total_cmats(net_name,study_1=True):
+    if study_1:
+        cm_dir = os.path.join(config.raw_dir, "Study 1", net_name, "confusion_matrices")
+    else:
+        cm_dir = os.path.join(config.raw_dir, "Study 2", net_name, "confusion_matrices")
+
     train_dir = os.path.join(cm_dir, "train_data")
     val_dir = os.path.join(cm_dir, "validation_data")
     cm_tot_t = np.zeros((2, 2))
@@ -37,8 +70,12 @@ def total_cmats(net_name):
     return cm_tot_t, cm_tot_v
 
 
-def avg_gradcam(net_name):
-    gcam_path = os.path.join(config.raw_dir, net_name, "gradCAM", "validation")
+def avg_gradcam(net_name,study_1=True):
+    if study_1:
+        gcam_path = os.path.join(config.raw_dir, "Study 1", net_name, "gradCAM", "validation")
+    else:
+        gcam_path = os.path.join(config.raw_dir, "Study 2", net_name, "gradCAM", "validation")
+
     mask_path = os.path.join(gcam_path, "masks")
     gstat_path = os.path.join(gcam_path, "scores")
 
@@ -71,24 +108,21 @@ def avg_gradcam(net_name):
     return avg_mask, avg_gstats
 
 
-def avg_save_net_results(net_name):
+def avg_save_net_results(net_name, study_1=True):
 
-    if "sf=0.5" in net_name:
-        result_dir = os.path.join(config.expt2_dir, net_name[:net_name.find("sf=0.5")-1])
-    elif "sf=" in net_name:
-        result_dir = os.path.join(config.results_basedir, net_name)
+    if study_1:
+        save_dir = os.path.join(config.expt1_dir, net_name)
     else:
-        result_dir = os.path.join(config.expt1_dir, net_name)
-    config.check_make_dir(result_dir)
-
+        save_dir = os.path.join(config.expt2_dir, net_name)
+    config.check_make_dir(save_dir)
     print("Processing training results...")
-    train_results, _ = avg_train_results(net_name)
-    train_results.to_csv(os.path.join(result_dir, "Train Results.csv"))
-    plot_and_save(train_results, result_dir)
+    train_results, _ = avg_train_results(net_name,study_1=study_1)
+    train_results.to_csv(os.path.join(save_dir, "Train Results.csv"))
+    plot_and_save(train_results, save_dir)
 
     print("Processing confusion matrices...")
-    cm_t, cm_v = total_cmats(net_name)
-    cm_path = os.path.join(result_dir, "Confusion Matrices.xlsx")
+    cm_t, cm_v = total_cmats(net_name,study_1=study_1)
+    cm_path = os.path.join(save_dir, "Confusion Matrices.xlsx")
     cm_writer = pd.ExcelWriter(cm_path, engine="xlsxwriter")
     cm_t = cm_arr_to_df(cm_t)
     cm_v = cm_arr_to_df(cm_v)
@@ -97,8 +131,8 @@ def avg_save_net_results(net_name):
     cm_writer.save()
 
     print("Processing GradCAM results...")
-    avg_masks, avg_gstats = avg_gradcam(net_name)
-    gcam_dir = os.path.join(result_dir, "gradCAM")
+    avg_masks, avg_gstats = avg_gradcam(net_name,study_1=study_1)
+    gcam_dir = os.path.join(save_dir, "gradCAM")
     config.check_make_dir(gcam_dir)
     avg_gstats.to_csv(os.path.join(gcam_dir, "GradCAM Info.csv"))
     img_paths = list(avg_gstats["img_path"])
@@ -107,10 +141,128 @@ def avg_save_net_results(net_name):
         img_name = os.path.basename(img)
         mask_img.save(os.path.join(gcam_dir, img_name))
 
-if __name__ == "__main__":
-    for net in config.DNNs:
-        avg_save_net_results(f"{net}")
-        avg_save_net_results(f"{net} sf=0.5")
 
-        # if "pretrain" in net:
-        #     avg_save_net_results(f"{net}")
+def graph_all_results(study_1=True):
+    plt.style.use("seaborn")
+    if study_1:
+        expt_dir = config.expt1_dir
+    else:
+        expt_dir= config.expt2_dir
+    leg1 = []
+    leg2 = []
+    for net_name in os.listdir(expt_dir):
+        # if ".png" not in net_name:
+        if os.path.isdir(os.path.join(expt_dir, net_name)):
+
+            for file in os.listdir(os.path.join(expt_dir, net_name)):
+                if "Train Results.csv" in file:
+                    result = pd.read_csv(os.path.join(expt_dir, net_name, file))
+                    if "pretrained" not in net_name:
+                        plt.figure(1)
+                        plt.plot(result["epoch"], result["val_acc"])
+                        plt.figure(2)
+                        plt.plot(result["epoch"], result["val_loss"])
+                        leg1.append(net_name)
+                    else:
+                        plt.figure(3)
+                        plt.plot(result["epoch"], result["val_acc"])
+                        plt.figure(4)
+                        plt.plot(result["epoch"], result["val_loss"])
+                        leg2.append(net_name.split(" ")[0])
+
+    plt.figure(1)
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend(leg1)
+    plt.title("Validation Accuracies (no pretraining)")
+    plt.savefig(os.path.join(expt_dir, "Validation Accuracies (no pretraining).png"))
+    plt.figure(2)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(leg2)
+    plt.title("Validation Losses (no pretraining)")
+    plt.savefig(os.path.join(expt_dir, "Validation Losses (no pretraining).png"))
+
+    plt.figure(3)
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend(leg1)
+    plt.title("Validation Accuracies (with pretraining)")
+    plt.savefig(os.path.join(expt_dir, "Validation Accuracies (with pretraining).png"))
+    plt.figure(4)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(leg2)
+    plt.title("Validation Losses (with pretraining)")
+    plt.savefig(os.path.join(expt_dir, "Validation Losses (with pretraining)"))
+    plt.close("all")
+    return
+
+
+def collate_net_scores_table(study_1=True):
+    net_names = config.DNNs
+    # if scale_factor is not None:
+    #     net_names = [f"{n} sf={scale_factor}" for n in net_names]
+    if study_1:
+        raw_dir = os.path.join(config.raw_dir_expt1)
+    else:
+        raw_dir = os.path.join(config.raw_dir_expt2)
+
+    collated_table = pd.DataFrame([])
+    for net in net_names:
+        result_path = os.path.join(raw_dir, net, "train_results")
+        net_results = pd.DataFrame([])
+        for file in os.listdir(result_path):
+            df = pd.read_csv(os.path.join(result_path, file))
+            score = {
+                "acc": df[df["epoch"] == 99]["acc"].values[0], # select acc at final epoch
+                "acc_std": np.std(df["acc"]),
+                "val_acc": df[df["epoch"] == 99]["val_acc"].values[0],
+                "val_acc_std": np.std(df["val_acc"]),
+                "loss": df[df["epoch"] == 99]["loss"].values[0],
+                "loss_std": np.std(df["loss"]),
+                "val_loss": df[df["epoch"] == 99]["val_loss"].values[0],
+                "val_loss_std": np.std(df["val_acc"])
+            }
+            net_results = net_results.append(pd.DataFrame([score]))
+        result = pd.DataFrame(np.mean(net_results)).transpose()
+        collated_table = collated_table.append(result)
+
+    if study_1:
+        collated_table.to_csv(os.path.join(config.expt1_dir, "DNN perfomance summary.csv"))
+    else:
+        collated_table.to_csv(os.path.join(config.expt2_dir, "DNN perfomance summary.csv"))
+
+    return collated_table
+
+def collate_cmats_xl(study_1=True):
+    if study_1:
+        expt_dir = config.expt1_dir
+    else:
+        expt_dir = config.expt2_dir
+
+    train_writer = pd.ExcelWriter(os.path.join(expt_dir, "Confusion Matrices (train images).xlsx"),
+                                  engine="xlsxwriter")
+    val_writer = pd.ExcelWriter(os.path.join(expt_dir, "Confusion Matrices (validation images).xlsx"),
+                                engine="xlsxwriter")
+    for net in os.listdir(expt_dir):
+        if net in config.DNNs:
+            for file in os.listdir(os.path.join(expt_dir, net)):
+                if file == "Confusion Matrices.xlsx":
+                    rpath = os.path.join(expt_dir, net, file)
+                    train_result = pd.read_excel(rpath, "Training", index_col=0)
+                    val_result = pd.read_excel(rpath, "Validation", index_col=0)
+
+                    train_result.to_excel(train_writer, sheet_name=net)
+                    val_result.to_excel(val_writer, sheet_name=net)
+
+    train_writer.save()
+    val_writer.save()
+if __name__ == "__main__":
+    # for net in config.DNNs:
+    #     avg_save_net_results(net, study_1=False)
+    #     avg_save_net_results(net, study_1=True)
+    collate_net_scores_table(study_1=True)
+    collate_net_scores_table(study_1=False)
+    graph_all_results(study_1=True)
+    graph_all_results(study_1=False)
