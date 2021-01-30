@@ -9,7 +9,7 @@ from torchvision import transforms
 from preprocessing import Preprocess
 from initialise_nets import initialise_DNN
 from gcam_utils import gcam_all_imgs, plot_cam_on_img
-from analysis_utils import avg_gradcam
+from process_results import avg_gradcam
 from more_utils import set_seed
 plt.style.use("seaborn")
 

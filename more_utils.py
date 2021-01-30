@@ -79,10 +79,11 @@ def cm_arr_to_df(arr):
 
 
 
-if __name__ == "__main__":
-    collate_cmats(config.expt1_dir)
-    collate_cmats(config.expt2_dir)
-    collate_all_results()
-    collate_all_results(scale_factor=0.5)
-    graph_all_results(config.expt1_dir)
-    graph_all_results(config.expt2_dir)
+# if __name__ == "__main__":
+
+    # collate_cmats(config.expt1_dir)
+    # collate_cmats(config.expt2_dir)
+    # collate_all_results()
+    # collate_all_results(scale_factor=0.5)
+    # graph_all_results(config.expt1_dir)
+    # graph_all_results(config.expt2_dir)

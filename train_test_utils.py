@@ -227,7 +227,7 @@ def train_test_network(net_name, study_1=True):
     return
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # for net in config.DNNs:
     #     train_nets_all_seeds(net,study_1=True)
     #     train_nets_all_seeds(net,study_1=False)
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     # train_nets_all_seeds("AlexNet (pretrained)", study_1=False)
     # train_nets_all_seeds("VGG11 (pretrained)", study_1=False)
     # train_nets_all_seeds("VGG16 (pretrained)", study_1=False)
-    train_nets_all_seeds("ResNet18 (pretrained)", study_1=False)
+    # train_nets_all_seeds("ResNet18 (pretrained)", study_1=False)
     # train_nets_all_seeds("ResNet50 (pretrained)", study_1=False)
     # train_nets_all_seeds("GoogLeNet (pretrained)", study_1=False)
     #

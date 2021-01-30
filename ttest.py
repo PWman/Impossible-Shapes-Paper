@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from torchvision import transforms
 from initialise_nets import initialise_DNN
-from analysis_utils import avg_gradcam, cm_arr_to_df
+from process_results import avg_gradcam, cm_arr_to_df
 from skimage.segmentation import flood_fill
 from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import levene, ttest_ind, ttest_rel

@@ -146,8 +146,11 @@ def graph_all_results(study_1=True):
     plt.style.use("seaborn")
     if study_1:
         expt_dir = config.expt1_dir
+        ax_ylim = [0.45,0.72]
     else:
         expt_dir= config.expt2_dir
+        ax_ylim = [0.4,0.6]
+
     leg1 = []
     leg2 = []
     for net_name in os.listdir(expt_dir):
@@ -174,26 +177,28 @@ def graph_all_results(study_1=True):
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.legend(leg1)
-    plt.title("Validation Accuracies (no pretraining)")
+    # plt.title("Validation Accuracies (no pretraining)")
+    plt.ylim(ax_ylim)
     plt.savefig(os.path.join(expt_dir, "Validation Accuracies (no pretraining).png"))
     plt.figure(2)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.legend(leg2)
-    plt.title("Validation Losses (no pretraining)")
+    # plt.title("Validation Losses (no pretraining)")
     plt.savefig(os.path.join(expt_dir, "Validation Losses (no pretraining).png"))
 
     plt.figure(3)
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.legend(leg1)
-    plt.title("Validation Accuracies (with pretraining)")
+    # plt.title("Validation Accuracies (with pretraining)")
+    plt.ylim(ax_ylim)
     plt.savefig(os.path.join(expt_dir, "Validation Accuracies (with pretraining).png"))
     plt.figure(4)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.legend(leg2)
-    plt.title("Validation Losses (with pretraining)")
+    # plt.title("Validation Losses (with pretraining)")
     plt.savefig(os.path.join(expt_dir, "Validation Losses (with pretraining)"))
     plt.close("all")
     return
