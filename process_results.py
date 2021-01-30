@@ -146,10 +146,11 @@ def graph_all_results(study_1=True):
     plt.style.use("seaborn")
     if study_1:
         expt_dir = config.expt1_dir
-        ax_ylim = [0.45,0.72]
+        acc_ax_ylim = [0.45, 0.72]
+        loss_ax_ylim = []
     else:
         expt_dir= config.expt2_dir
-        ax_ylim = [0.4,0.6]
+        acc_ax_ylim = [0.4, 0.6]
 
     leg1 = []
     leg2 = []
@@ -178,7 +179,7 @@ def graph_all_results(study_1=True):
     plt.ylabel("Accuracy")
     plt.legend(leg1)
     # plt.title("Validation Accuracies (no pretraining)")
-    plt.ylim(ax_ylim)
+    plt.ylim(acc_ax_ylim)
     plt.savefig(os.path.join(expt_dir, "Validation Accuracies (no pretraining).png"))
     plt.figure(2)
     plt.xlabel("Epoch")
@@ -192,7 +193,7 @@ def graph_all_results(study_1=True):
     plt.ylabel("Accuracy")
     plt.legend(leg1)
     # plt.title("Validation Accuracies (with pretraining)")
-    plt.ylim(ax_ylim)
+    plt.ylim(acc_ax_ylim)
     plt.savefig(os.path.join(expt_dir, "Validation Accuracies (with pretraining).png"))
     plt.figure(4)
     plt.xlabel("Epoch")
