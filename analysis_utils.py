@@ -259,15 +259,15 @@ def get_acc_1samp_ttest(study_1=True):
 
 
 if __name__ == "__main__":
-    # save_acc_ttest_results(study_1=True)
-    # save_acc_ttest_results(study_1=False)
-    # df_s1_train = get_background_proportion_20iter(study_1=True, train_data=True)
-    # df_s2_train = get_background_proportion_20iter(study_1=False, train_data=True)
-    #
-    # save_background_t_test_result(study_1=True,seed_mean=True)
-    # save_background_t_test_result(study_1=False,seed_mean=True)
+    save_acc_ttest_results(study_1=True)
+    save_acc_ttest_results(study_1=False)
+    df_s1_train = get_background_proportion_20iter(study_1=True, train_data=True)
+    df_s2_train = get_background_proportion_20iter(study_1=False, train_data=True)
 
-    # plt.figure()
-    # background_ttest_and_plot(df_s2_train)
+    save_background_t_test_result(study_1=True,seed_mean=True)
+    save_background_t_test_result(study_1=False,seed_mean=True)
+
+    plt.figure()
+    background_ttest_and_plot(df_s2_train)
     get_acc_1samp_ttest(study_1=True)
     get_acc_1samp_ttest(study_1=False)
