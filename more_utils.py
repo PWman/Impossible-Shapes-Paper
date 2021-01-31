@@ -5,7 +5,11 @@ import random
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from copy import copy
+from math import floor, log10
+from skimage.segmentation import flood_fill
 from torchvision import transforms
+
 
 plt.style.use("seaborn")
 
@@ -35,12 +39,18 @@ def save_batch(imgs,lbls,bname):
         save_name = os.path.join(config.check_train_dir,img_name)
         transforms.ToPILImage()(img).save(save_name)
 
+def round_sig(x,sig=2):
+    return round(x, sig-int(floor(log10(abs(x))))-1)
+
+
 
 def cm_arr_to_df(arr):
     df = pd.DataFrame(arr)
     df.columns = ["Pred Imposs", "Pred Poss"]
     df.index = ["Actual Imposs", "Actual Poss"]
     return df
+
+
 
 
 def get_ffil_img(img):

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from gcam_utils import plot_cam_on_img
-from more_utils import cm_arr_to_df
+from more_utils import cm_arr_to_df, round_sig
 
 
 def plot_and_save(results,fpath):
@@ -41,15 +41,77 @@ def avg_train_results(net_name,study_1=True):
         results_path = os.path.join(config.raw_dir, "Study 2", net_name, "train_results")
 
     avg_results = []
-    scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
+    # scores = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
+    for file in os.listdir(results_path):
+        result = pd.read_csv(os.path.join(results_path, file), index_col=0)
+        # end_result = result[result["epoch"] == max(result["epoch"])]  # .drop(columns=["epoch"])
+        # scores = scores.append(end_result.drop(columns=["epoch"]))
+        avg_results.append(result)
+
+    return sum(avg_results) / len(avg_results)#, scores
+
+def get_raw_scores(net_path,average_score=True):
+    results_path = os.path.join(net_path,"train_results")
+    scores_df = pd.DataFrame(columns=["acc", "val_acc", "loss", "val_loss"])
     for file in os.listdir(results_path):
         result = pd.read_csv(os.path.join(results_path, file), index_col=0)
         end_result = result[result["epoch"] == max(result["epoch"])]  # .drop(columns=["epoch"])
-        scores = scores.append(end_result.drop(columns=["epoch"]))
-        avg_results.append(result)
+        scores_df = scores_df.append(end_result.drop(columns=["epoch"]))
 
-    return sum(avg_results) / len(avg_results), scores
+    if average_score:
+        df_av = pd.DataFrame([{
+            "acc": np.mean(scores_df["acc"]),
+            "acc_std": np.std(scores_df["acc"]),
+            "val_acc": np.mean(scores_df["acc"]),
+            "val_acc_std": np.std(scores_df["acc"]),
+            "loss": np.mean(scores_df["loss"]),
+            "loss_std": np.std(scores_df["loss"]),
+            "val_loss": np.mean(scores_df["val_loss"]),
+            "val_loss_std": np.std(scores_df["val_loss"])
+        }])
+        return df_av
+    else:
+        return scores_df
 
+def collate_net_scores_table(study_1=True):
+    def format_df(scores_df):
+        def format_lbl(df, col_name, round_val):
+            avg = np.round(df[col_name].values[0],round_val)
+            std = np.round(df[f"{col_name}_std"].values[0], round_val)
+            return f"{avg} " + u"\u00B1" + f" {std}"
+        if "pretrain" in scores_df["net_name"]:
+            arch_lbl = scores_df.net_name.values[0]
+        else:
+            arch_lbl = f"{scores_df.net_name.values[0]} (untrained)"
+        df_formatted = pd.DataFrame([{
+            "DNN Architecture": arch_lbl,
+            "Train Accuracy [%]": format_lbl(scores_df*100, "acc", 1),
+            "Validation Accuracy [%]": format_lbl(scores_df*100, "val_acc", 1),
+            "Train Loss": format_lbl(scores_df, "loss", 2),
+            "Validation Loss": format_lbl(scores_df, "val_loss", 2),
+        }])
+        return df_formatted
+
+    if study_1:
+        raw_dir = config.raw_dir_expt1
+        save_dir = os.path.join(config.expt1_dir, "DNN Performance Summary.xlsx")
+    else:
+        raw_dir = config.raw_dir_expt2
+        save_dir = os.path.join(config.expt2_dir, "DNN Performance Summary.xlsx")
+
+    df_unformattted = pd.DataFrame([])
+    df_full_formatted = pd.DataFrame([])
+    for net_name in config.DNNs:
+        net_path = os.path.join(raw_dir,net_name)
+        df = get_raw_scores(net_path, average_score=True)
+        df.insert(0, "net_name", net_name)
+        df_unformattted = df_unformattted.append(df)
+        df_full_formatted = df_full_formatted.append(format_df(df))
+
+    xl_writer = pd.ExcelWriter(save_dir, engine="xlsxwriter")
+    df_full_formatted.to_excel(xl_writer,sheet_name="Formatted Results")
+    df_unformattted.to_excel(xl_writer,sheet_name="Results Unformatted")
+    xl_writer.save()
 
 def total_cmats(net_name,study_1=True):
     if study_1:
@@ -116,7 +178,7 @@ def avg_save_net_results(net_name, study_1=True):
         save_dir = os.path.join(config.expt2_dir, net_name)
     config.check_make_dir(save_dir)
     print("Processing training results...")
-    train_results, _ = avg_train_results(net_name,study_1=study_1)
+    train_results = avg_train_results(net_name,study_1=study_1)
     train_results.to_csv(os.path.join(save_dir, "Train Results.csv"))
     plot_and_save(train_results, save_dir)
 
@@ -205,41 +267,41 @@ def graph_all_results(study_1=True):
     return
 
 
-def collate_net_scores_table(study_1=True):
-    net_names = config.DNNs
-    # if scale_factor is not None:
-    #     net_names = [f"{n} sf={scale_factor}" for n in net_names]
-    if study_1:
-        raw_dir = os.path.join(config.raw_dir_expt1)
-    else:
-        raw_dir = os.path.join(config.raw_dir_expt2)
-
-    collated_table = pd.DataFrame([])
-    for net in net_names:
-        result_path = os.path.join(raw_dir, net, "train_results")
-        net_results = pd.DataFrame([])
-        for file in os.listdir(result_path):
-            df = pd.read_csv(os.path.join(result_path, file))
-            score = {
-                "acc": df[df["epoch"] == 99]["acc"].values[0], # select acc at final epoch
-                "acc_std": np.std(df["acc"]),
-                "val_acc": df[df["epoch"] == 99]["val_acc"].values[0],
-                "val_acc_std": np.std(df["val_acc"]),
-                "loss": df[df["epoch"] == 99]["loss"].values[0],
-                "loss_std": np.std(df["loss"]),
-                "val_loss": df[df["epoch"] == 99]["val_loss"].values[0],
-                "val_loss_std": np.std(df["val_acc"])
-            }
-            net_results = net_results.append(pd.DataFrame([score]))
-        result = pd.DataFrame(np.mean(net_results)).transpose()
-        collated_table = collated_table.append(result)
-
-    if study_1:
-        collated_table.to_csv(os.path.join(config.expt1_dir, "DNN perfomance summary.csv"))
-    else:
-        collated_table.to_csv(os.path.join(config.expt2_dir, "DNN perfomance summary.csv"))
-
-    return collated_table
+# def collate_net_scores_table(study_1=True):
+#     net_names = config.DNNs
+#     # if scale_factor is not None:
+#     #     net_names = [f"{n} sf={scale_factor}" for n in net_names]
+#     if study_1:
+#         raw_dir = os.path.join(config.raw_dir_expt1)
+#     else:
+#         raw_dir = os.path.join(config.raw_dir_expt2)
+#
+#     collated_table = pd.DataFrame([])
+#     for net in net_names:
+#         result_path = os.path.join(raw_dir, net, "train_results")
+#         net_results = pd.DataFrame([])
+#         for file in os.listdir(result_path):
+#             df = pd.read_csv(os.path.join(result_path, file))
+#             score = {
+#                 "acc": df[df["epoch"] == 99]["acc"].values[0], # select acc at final epoch
+#                 "acc_std": np.std(df["acc"]),
+#                 "val_acc": df[df["epoch"] == 99]["val_acc"].values[0],
+#                 "val_acc_std": np.std(df["val_acc"]),
+#                 "loss": df[df["epoch"] == 99]["loss"].values[0],
+#                 "loss_std": np.std(df["loss"]),
+#                 "val_loss": df[df["epoch"] == 99]["val_loss"].values[0],
+#                 "val_loss_std": np.std(df["val_acc"])
+#             }
+#             net_results = net_results.append(pd.DataFrame([score]))
+#         result = pd.DataFrame(np.mean(net_results)).transpose()
+#         collated_table = collated_table.append(result)
+#
+#     if study_1:
+#         collated_table.to_csv(os.path.join(config.expt1_dir, "DNN perfomance summary.csv"))
+#     else:
+#         collated_table.to_csv(os.path.join(config.expt2_dir, "DNN perfomance summary.csv"))
+#
+#     return collated_table
 
 def collate_cmats_xl(study_1=True):
     if study_1:
@@ -264,11 +326,14 @@ def collate_cmats_xl(study_1=True):
 
     train_writer.save()
     val_writer.save()
+
 if __name__ == "__main__":
     # for net in config.DNNs:
     #     avg_save_net_results(net, study_1=False)
     #     avg_save_net_results(net, study_1=True)
     collate_net_scores_table(study_1=True)
     collate_net_scores_table(study_1=False)
-    graph_all_results(study_1=True)
-    graph_all_results(study_1=False)
+    # graph_all_results(study_1=True)
+    # graph_all_results(study_1=False)
+    # collate_cmats_xl(study_1=True)
+    # collate_cmats_xl(study_1=False)

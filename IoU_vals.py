@@ -15,7 +15,6 @@ from scipy import stats
 
 plt.style.use("seaborn")
 
-
 def get_ffil_img(img_path):
     img = Image.open(img_path).convert("1")
     img_arr = np.array(img).astype(int)

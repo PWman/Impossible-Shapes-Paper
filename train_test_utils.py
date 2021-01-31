@@ -149,13 +149,13 @@ def save_all_cmats(net_name,study_1=True):
     print("Getting confusion matrices...")
     if study_1:
         prepro_dir = os.path.join(config.prepro_dir, "Study 1")
-        model_path = os.path.join(config.raw_dir, "Study 1", net_name, "models")
-        save_dir = os.path.join(config.raw_dir, "Study 1", net_name, "confusion_matrices")
+        model_path = os.path.join(config.raw_dir_expt1, net_name, "models")
+        save_dir = os.path.join(config.raw_dir_expt1, net_name, "confusion_matrices")
 
     else:
         prepro_dir = os.path.join(config.prepro_dir, "Study 2")
-        model_path = os.path.join(config.raw_dir, "Study 2", net_name, "models")
-        save_dir = os.path.join(config.raw_dir, "Study 2", net_name, "confusion_matrices")
+        model_path = os.path.join(config.raw_dir_expt2, net_name, "models")
+        save_dir = os.path.join(config.raw_dir_expt2, net_name, "confusion_matrices")
 
     train_dir = os.path.join(save_dir, "train_data")
     val_dir = os.path.join(save_dir, "validation_data")
@@ -168,7 +168,9 @@ def save_all_cmats(net_name,study_1=True):
     net, opt = initialise_DNN(net_name)
     net.to(config.device)
 
-    for seed, file in enumerate(os.listdir(model_path)):
+    for file in os.listdir(model_path):
+        seed = int(file.replace(".pt",""))
+        set_seed(seed)
         net.load_state_dict(torch.load(os.path.join(model_path, file)))
         cm_t, cm_v = get_cm_result(p, net)
         np.save(os.path.join(train_dir, f"{seed}"), cm_t)
@@ -204,8 +206,9 @@ def save_all_gcams(net_name, study_1=True, train_data=False):
     net, opt = initialise_DNN(net_name)
     net.to(config.device)
 
-    for seed, file in enumerate(os.listdir(net_path)):
-        set_seed(int(seed))
+    for file in os.listdir(net_path):
+        seed = int(file.replace(".pt",""))
+        set_seed(seed)
         net.load_state_dict(torch.load(os.path.join(net_path, file)))
         if "GoogLeNet" in net_name and "pretrain" not in net_name:
             net.aux_logits = False
@@ -223,15 +226,20 @@ def train_test_network(net_name, study_1=True):
     train_nets_all_seeds(net_name, study_1=study_1)
     save_all_cmats(net_name, study_1=study_1)
     save_all_gcams(net_name, study_1=study_1)
-    # save_all_gcams(net_name,train_data=True)
     return
 
 
-# if __name__ == "__main__":
-    # for net in config.DNNs:
-    #     train_nets_all_seeds(net,study_1=True)
-    #     train_nets_all_seeds(net,study_1=False)
+if __name__ == "__main__":
+    for net in config.DNNs:
+        train_test_network(net, study_1=True)
+        train_test_network(net, study_1=False)
 
+    # train_nets_all_seeds("AlexNet")
+    # train_nets_all_seeds("VGG11")
+    # train_nets_all_seeds("VGG16")
+    # train_nets_all_seeds("ResNet18")
+    # train_nets_all_seeds("ResNet50")
+    # train_nets_all_seeds("GoogLeNet")
     # train_nets_all_seeds("AlexNet (pretrained)")
     # train_nets_all_seeds("VGG11 (pretrained)")
     # train_nets_all_seeds("VGG16 (pretrained)")
@@ -245,7 +253,6 @@ def train_test_network(net_name, study_1=True):
     # train_nets_all_seeds("ResNet18 (pretrained)", study_1=False)
     # train_nets_all_seeds("ResNet50 (pretrained)", study_1=False)
     # train_nets_all_seeds("GoogLeNet (pretrained)", study_1=False)
-    #
     # train_nets_all_seeds("AlexNet", study_1=False)
     # train_nets_all_seeds("VGG11", study_1=False)
     # train_nets_all_seeds("VGG16", study_1=False)
@@ -253,10 +260,5 @@ def train_test_network(net_name, study_1=True):
     # train_nets_all_seeds("ResNet50", study_1=False)
     # train_nets_all_seeds("GoogLeNet", study_1=False)
 
-    # train_nets_all_seeds("AlexNet")
-    # train_nets_all_seeds("VGG11")
-    # train_nets_all_seeds("VGG16")
-    # train_nets_all_seeds("ResNet18")
-    # train_nets_all_seeds("ResNet50")
-    # train_nets_all_seeds("GoogLeNet")
+
 
