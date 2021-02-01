@@ -328,12 +328,12 @@ def collate_cmats_xl(study_1=True):
     val_writer.save()
 
 if __name__ == "__main__":
-    # for net in config.DNNs:
-    #     avg_save_net_results(net, study_1=False)
-    #     avg_save_net_results(net, study_1=True)
+    for net in config.DNNs:
+        avg_save_net_results(net, study_1=True)
+        avg_save_net_results(net, study_1=False)
     collate_net_scores_table(study_1=True)
     collate_net_scores_table(study_1=False)
-    # graph_all_results(study_1=True)
-    # graph_all_results(study_1=False)
-    # collate_cmats_xl(study_1=True)
-    # collate_cmats_xl(study_1=False)
+    graph_all_results(study_1=True)
+    graph_all_results(study_1=False)
+    collate_cmats_xl(study_1=True)
+    collate_cmats_xl(study_1=False)
