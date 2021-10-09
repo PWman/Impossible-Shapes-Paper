@@ -1,0 +1,17 @@
+,img_name,img_path,n_correct,n_nans,n_poss_preds
+0,impossa1.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossa1.bmp,5.0,0.0,15.0
+1,impossb5.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossb5.bmp,5.0,0.0,15.0
+2,impossc2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossc2.bmp,4.0,0.0,16.0
+3,impossg2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossg2.bmp,6.0,0.0,14.0
+4,impossg8.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossg8.bmp,8.0,0.0,12.0
+5,impossh2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossh2.bmp,6.0,0.0,14.0
+6,impossi1.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossi1.bmp,7.0,0.0,13.0
+7,impossi5.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Impossible\impossi5.bmp,8.0,0.0,12.0
+8,newpossa1.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossa1.bmp,18.0,0.0,18.0
+9,newpossb5.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossb5.bmp,15.0,0.0,15.0
+10,newpossc2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossc2.bmp,18.0,0.0,18.0
+11,newpossg2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossg2.bmp,14.0,0.0,14.0
+12,newpossg8.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossg8.bmp,11.0,0.0,11.0
+13,newpossh2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossh2.bmp,15.0,0.0,15.0
+14,newpossi1.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossi1.bmp,17.0,0.0,17.0
+15,newpossi5.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 1\Validation\Possible\newpossi5.bmp,18.0,0.0,18.0

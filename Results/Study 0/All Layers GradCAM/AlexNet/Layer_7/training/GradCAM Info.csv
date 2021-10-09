@@ -1,0 +1,17 @@
+,img_name,img_path,n_correct,n_nans,n_poss_preds
+0,Circle17.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle17.bmp,17.0,3.0,3.0
+1,Circle19.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle19.bmp,17.0,5.0,3.0
+2,Circle2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle2.bmp,19.0,7.0,1.0
+3,Circle27.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle27.bmp,19.0,4.0,1.0
+4,Circle28.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle28.bmp,19.0,6.0,1.0
+5,Circle30.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle30.bmp,18.0,7.0,2.0
+6,Circle37.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle37.bmp,18.0,6.0,2.0
+7,Circle6.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Circle\Circle6.bmp,19.0,6.0,1.0
+8,Square17.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square17.bmp,19.0,1.0,19.0
+9,Square19.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square19.bmp,19.0,2.0,19.0
+10,Square2.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square2.bmp,18.0,4.0,18.0
+11,Square27.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square27.bmp,20.0,3.0,20.0
+12,Square28.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square28.bmp,19.0,2.0,19.0
+13,Square30.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square30.bmp,18.0,3.0,18.0
+14,Square37.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square37.bmp,19.0,2.0,19.0
+15,Square6.bmp,C:\Users\Peter\Impossible-Shapes-Paper\Shapes\Preprocessed\Study 0\Validation\Square\Square6.bmp,18.0,2.0,18.0
