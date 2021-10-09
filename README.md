@@ -11,9 +11,9 @@ The repository is structured in the following way:
 - The Python code and analysis (CNN study) is contained in the main directory of this repository.
 - The *Results* directory contains the results from the CNN study, as well as some additional analysis of images.
 - The above directory contains results titled *Study 0*, *Study 1* and *Study 2*:
-  -Study 0 is the circle-square control study
-  -Study 1 contains results for the impossible shapes before background size was controlled
-  -Study 2 contains results for the main study (impossible controlled for background size)
+  - Study 0 is the circle-square control study
+  - Study 1 contains results for the impossible shapes before background size was controlled
+  - Study 2 contains results for the main study (impossible controlled for background size)
 - The above directories contain some summary tables and figures of DNN performance.
 - They also contain sub-directories with the more detailed results for each DNN (e.g. GradCAM results for each network).
 - *Results/Shapes* contains the dataset of matched possible and impossible shapes.
